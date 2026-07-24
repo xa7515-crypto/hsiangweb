@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>4-2 解一元一次不等式及其應用｜隨堂基礎卷</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f0e8;
+    --paper: #fffdf7;
+    --ink: #1a1208;
+    --ink-light: #5a4e3a;
+    --accent: #c0392b;
+    --accent-bg: #fdf0ee;
+    --gold: #b8860b;
+    --gold-light: #f5e6a3;
+    --flag: #e67e22;
+    --flag-bg: #fff8f0;
+    --border: #d4c9b0;
+    --border-dark: #a89880;
+    --marked-border: #e67e22;
+    --marked-bg: #fff8f0;
+    --correct: #2c7a4b;
+    --shadow: rgba(26,18,8,0.10);
+    --section-bg: #1a1208;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    font-family: 'Noto Sans TC', sans-serif;
+    color: var(--ink);
+    min-height: 100vh;
+    padding-bottom: 60px;
+  }
+
+  /* Header */
+  .header {
+    background: var(--ink);
+    color: var(--gold-light);
+    padding: 28px 40px 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(90deg,transparent,transparent 40px,rgba(245,230,163,0.04) 40px,rgba(245,230,163,0.04) 41px);
+  }
+  .header-inner { position: relative; max-width: 960px; margin: 0 auto; }
+  .header-tag { font-size: 11px; letter-spacing: 0.3em; color: var(--gold); margin-bottom: 6px; font-family: 'Noto Serif TC', serif; }
+  .header h1 { font-family: 'Noto Serif TC', serif; font-size: 26px; font-weight: 700; letter-spacing: 0.05em; }
+  .header-meta { margin-top: 8px; font-size: 12px; color: rgba(245,230,163,0.55); letter-spacing: 0.08em; display: flex; gap: 20px; flex-wrap: wrap; }
+  .header-meta span::before { content: '▸ '; }
+
+  /* Controls */
+  .controls {
+    background: var(--paper);
+    border-bottom: 2px solid var(--border);
+    padding: 12px 40px;
+    position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 2px 12px var(--shadow);
+  }
+  .controls-inner { max-width: 960px; margin: 0 auto; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .filter-btn {
+    padding: 6px 16px; border-radius: 2px;
+    border: 1.5px solid var(--border-dark);
+    background: transparent;
+    font-family: 'Noto Sans TC', sans-serif; font-size: 13px; color: var(--ink-light);
+    cursor: pointer; transition: all 0.15s; letter-spacing: 0.05em;
+  }
+  .filter-btn.active { background: var(--ink); color: var(--gold-light); border-color: var(--ink); }
+  .filter-btn:hover:not(.active) { border-color: var(--ink); color: var(--ink); }
+  .flag-count { margin-left: auto; font-size: 12px; color: var(--flag); font-weight: 500; display: flex; align-items: center; gap: 5px; }
+  .flag-count-num { background: var(--flag); color: white; border-radius: 50%; width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; }
+
+  /* Main */
+  .main { max-width: 960px; margin: 0 auto; padding: 28px 16px; }
+
+  /* Section header */
+  .section-header {
+    background: var(--ink);
+    color: var(--gold-light);
+    font-family: 'Noto Serif TC', serif;
+    font-size: 14px;
+    font-weight: 700;
+    padding: 10px 18px;
+    letter-spacing: 0.1em;
+    margin: 28px 0 12px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-header span { font-size: 11px; color: rgba(245,230,163,0.5); font-weight: 400; letter-spacing: 0.05em; }
+
+  /* Question card */
+  .q-card {
+    background: var(--paper);
+    border: 1.5px solid var(--border);
+    margin-bottom: 14px;
+    transition: border-color 0.2s, background 0.2s;
+    position: relative;
+  }
+  .q-card.marked { border-color: var(--marked-border); background: var(--marked-bg); }
+  .q-card.marked .q-num { background: var(--flag); color: white; }
+  .q-card.hidden { display: none; }
+
+  .q-card-top { display: flex; align-items: flex-start; padding: 18px 18px 0 18px; gap: 12px; }
+
+  .q-num {
+    flex-shrink: 0; width: 30px; height: 30px;
+    background: var(--ink); color: var(--gold-light);
+    font-family: 'Noto Serif TC', serif; font-size: 12px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    margin-top: 2px; transition: background 0.2s, color 0.2s;
+  }
+  .flag-btn {
+    flex-shrink: 0; width: 26px; height: 26px;
+    background: transparent; border: 1.5px solid var(--border); color: var(--border-dark);
+    cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s; margin-top: 3px; border-radius: 2px;
+  }
+  .flag-btn:hover { border-color: var(--flag); color: var(--flag); }
+  .q-card.marked .flag-btn { border-color: var(--flag); background: var(--flag); color: white; }
+
+  .q-body { flex: 1; }
+  .q-stem { font-size: 14.5px; line-height: 1.8; color: var(--ink); padding-bottom: 12px; }
+  .q-stem em { font-style: normal; font-weight: 600; color: var(--accent); }
+
+  /* Options */
+  .q-options { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 14px; padding: 0 0 14px 42px; }
+  .q-option { display: flex; align-items: flex-start; gap: 7px; font-size: 13.5px; line-height: 1.65; color: var(--ink-light); }
+  .q-option-label { flex-shrink: 0; font-weight: 700; color: var(--ink); font-size: 12px; min-width: 20px; }
+
+  /* Fill-in / calc stem */
+  .q-fill { font-size: 14px; line-height: 1.85; color: var(--ink); padding: 0 0 14px 42px; }
+  .blank { display: inline-block; min-width: 60px; border-bottom: 1.5px solid var(--border-dark); margin: 0 4px; }
+
+  /* Footer */
+  .q-footer {
+    border-top: 1px solid var(--border);
+    padding: 12px 18px 12px 60px;
+    background: rgba(245,240,232,0.45);
+  }
+  .answer-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .answer-label { font-size: 10.5px; letter-spacing: 0.12em; color: var(--border-dark); font-weight: 700; text-transform: uppercase; }
+  .answer-reveal {
+    font-family: 'Noto Serif TC', serif; font-size: 14.5px; font-weight: 700;
+    color: white; background: white;
+    border: 1px solid var(--border); padding: 2px 12px; border-radius: 2px;
+    cursor: default; user-select: text; transition: color 0.15s; letter-spacing: 0.05em;
+  }
+  .q-card:hover .answer-reveal, .answer-reveal:hover { color: var(--correct); }
+  .answer-note { font-size: 12px; color: var(--ink-light); margin-top: 6px; line-height: 1.7; }
+  .answer-note strong { color: var(--ink); }
+
+  /* Marked badge */
+  .marked-badge { display: none; position: absolute; top: 0; right: 0; background: var(--flag); color: white; font-size: 10px; font-weight: 700; padding: 3px 10px; letter-spacing: 0.1em; }
+  .q-card.marked .marked-badge { display: block; }
+
+  /* Calc solution */
+  .calc-steps {
+    margin-top: 8px; padding: 10px 14px;
+    background: #f0f7f3; border-left: 3px solid var(--correct);
+    font-size: 13px; line-height: 2; color: var(--ink);
+    font-family: 'Noto Serif TC', serif;
+  }
+  .calc-steps .step { display: block; }
+
+  /* Empty */
+  .empty-state { text-align: center; padding: 50px 20px; color: var(--border-dark); font-size: 14px; display: none; }
+  .empty-state.show { display: block; }
+
+  /* Score info */
+  .score-info { font-size: 11.5px; color: var(--border-dark); margin-left: 8px; }
+
+  @media (max-width: 600px) {
+    .q-options { grid-template-columns: 1fr; padding-left: 42px; }
+    .header { padding: 20px 16px 16px; }
+    .controls { padding: 10px 14px; }
+    .main { padding: 18px 8px; }
+    .q-footer { padding-left: 18px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div class="header-tag">國中數學（二）· 第四章 · 4-2 · 隨堂基礎卷</div>
+    <h1>解一元一次不等式及其應用</h1>
+    <div class="header-meta">
+      <span>選擇題 5 題 × 5 分＝25 分</span>
+      <span>填充題 13 格 × 5 分＝65 分</span>
+      <span>計算題 2 題 × 5 分＝10 分</span>
+      <span>總分 100 分</span>
+    </div>
+  </div>
+</div>
+
+<div class="controls">
+  <div class="controls-inner">
+    <button class="filter-btn active" id="btn-all" onclick="filterCards('all')">全部題目</button>
+    <button class="filter-btn" id="btn-marked" onclick="filterCards('marked')">已標記</button>
+    <div class="flag-count">🚩 已標記 <span class="flag-count-num" id="flag-count-num">0</span> 題</div>
+  </div>
+</div>
+
+<div class="main" id="main">
+
+<!-- ══ 一、選擇題 ══ -->
+<div class="section-header">一、選擇題 <span>每題 5 分，共 25 分</span></div>
+
+<!-- Q1 -->
+<div class="q-card" id="q1">
+  <div class="marked-badge">容易出錯</div>
+  <div class="q-card-top">
+    <div class="q-num">1</div>
+    <button class="flag-btn" onclick="toggleFlag(1)">🚩</button>
+    <div class="q-body">
+      <div class="q-stem">若 <em>a ≥ 2</em>，則下列哪一個不等式關係是正確的？</div>
+    </div>
+  </div>
+  <div class="q-options">
+    <div class="q-option"><span class="q-option-label">(A)</span> 4 − a ≥ 2</div>
+    <div class="q-option"><span class="q-option-label">(B)</span> 2a + 1 ≥ 5</div>
+    <div class="q-option"><span class="q-option-label">(C)</span> a − 2 &lt; 0</div>
+    <div class="q-option"><span class="q-option-label">(D)</span> 2(a + 3) ≥ 15</div>
+  </div>
+  <div class="q-footer">
+    <div class="answer-row">
+      <span class="answer-label">答案</span>
+      <span class="answer-reveal">(B)</span>
+    </div>
+    <div class="answer-note">
+      a ≥ 2，兩邊乘 2 得 2a ≥ 4，再加 1 得 <strong>2a+1 ≥ 5</strong>（B 正確）。<br>
+      (A) a ≥ 2 → −a ≤ −2 → 4−a ≤ 2，不等號方向錯。<br>
+      (C) a ≥ 2 → a−2 ≥ 0，不成立。<br>
+      (D) a ≥ 2 → a+3 ≥ 5 → 2(a+3) ≥ 10，不能確定 ≥ 15。
+    </div>
+  </div>
+</div>
+
+<!-- Q2 -->
+<div class="q-card" id="q2">
+  <div class="marked-badge">容易出錯</div>
+  <div class="q-card-top">
+    <div class="q-num">2</div>
+    <button class="flag-btn" onclick="toggleFlag(2)">🚩</button>
+    <div class="q-body">
+      <div class="q-stem">下列何者是一元一次不等式 <em>3x + 2 > x − 4</em> 之解的圖示？<br>
+      （○ 為空心，● 為實心；解在 −3 右方為 B 型，左方為其他型）</div>
+    </div>
+  </div>
+  <div class="q-options">
+    <div class="q-option"><span class="q-option-label">(A)</span> −3 空心，向左延伸</div>
+    <div class="q-option"><span class="q-option-label">(B)</span> −3 空心，向右延伸</div>
+    <div class="q-option"><span class="q-option-label">(C)</span> −3 實心，向左延伸</div>
+    <div class="q-option"><span class="q-option-label">(D)</span> −3 實心，向右延伸</div>
+  </div>
+  <div class="q-footer">
+    <div class="answer-row">
+      <span class="answer-label">答案</span>
+      <span class="answer-reveal">(B)</span>
+    </div>
+    <div class="answer-note">
+      解：3x+2 &gt; x−4 → 2x &gt; −6 → <strong>x &gt; −3</strong>。<br>
+      x &gt; −3：不含 −3（空心○），解在 −3 右方。選(B)。
+    </div>
+  </div>
+</div>
+
+<!-- Q3 -->
+<div class="q-card" id="q3">
+  <div class="marked-badge">容易出錯</div>
+  <div class="q-card-top">
+    <div class="q-num">3</div>
+    <button class="flag-btn" onclick="toggleFlag(3)">🚩</button>
+    <div class="q-body">
+      <div class="q-stem">滿足不等式 <em>5x − 7 &lt; 3x − 2</em> 的最大整數為何？</div>
+    </div>
+  </div>
+  <div class="q-options">
+    <div class="q-option"><span class="q-option-label">(A)</span> 3</div>
+    <div class="q-option"><span class="q-option-label">(B)</span> 2</div>
+    <div class="q-option"><span class="q-option-label">(C)</span> −3</div>
+    <div class="q-option"><span class="q-option-label">(D)</span> −2</div>
+  </div>
+  <div class="q-footer">
+    <div class="answer-row">
+      <span class="answer-label">答案</span>
+      <span class="answer-reveal">(B)</span>
+    </div>
+    <div class="answer-note">
+      5x−7 &lt; 3x−2 → 2x &lt; 5 → <strong>x &lt; 5/2 = 2.5</strong>。<br>
+      小於 2.5 的最大整數為 <strong>2</strong>。
+    </div>
+  </div>
+</div>
+
+<!-- Q4 -->
+<div class="q-card" id="q4">
+  <div class="marked-badge">容易出錯</div>
+  <div class="q-card-top">
+    <div class="q-num">4</div>
+    <button class="flag-btn" onclick="toggleFlag(4)">🚩</button>
+    <div class="q-body">
+      <div class="q-stem">滿足不等式 <em>5x − 15 ≤ −3x + 1</em> 的正整數共有幾個？</div>
+    </div>
+  </div>
+  <div class="q-options">
+    <div class="q-option"><span class="q-option-label">(A)</span> 2</div>
+    <div class="q-option"><span class="q-option-label">(B)</span> 3</div>
+    <div class="q-option"><span class="q-option-label">(C)</span> 4</div>
+    <div class="q-option"><span class="q-option-label">(D)</span> 5</div>
+  </div>
+  <div class="q-footer">
+    <div class="answer-row">
+      <span class="answer-label">答案</span>
+      <span class="answer-reveal">(A)</span>
+    </div>
+    <div class="answer-note">
+      5x−15 ≤ −3x+1 → 8x ≤ 16 → <strong>x ≤ 2</strong>。<br>
+      正整數且 ≤ 2：1、2，共 <strong>2 個</strong>。
+    </div>
+  </div>
+</div>
+
+<!-- Q5 -->
+<div class="q-card" id="q5">
+  <div class="marked-badge">容易出錯</div>
+  <div class="q-card-top">
+    <div class="q-num">5</div>
+    <button class="flag-btn" onclick="toggleFlag(5)">🚩</button>
+    <div class="q-body">
+      <div class="q-stem">美美帶著 150 元到文具店買每枝 12 元和每枝 20 元的原子筆若干枝。已知美美買的 <em>12 元原子筆比 20 元的多 2 枝</em>，則她最多可能買到幾枝 12 元的原子筆？</div>
+    </div>
+  </div>
+  <div class="q-options">
+    <div class="q-option"><span class="q-option-label">(A)</span> 3</div>
+    <div class="q-option"><span class="q-option-label">(B)</span> 4</div>
+    <div class="q-option"><span class="q-option-label">(C)</span> 5</div>
+    <div class="q-option"><span class="q-option-label">(D)</span> 6</div>
+  </div>
+  <div class="q-footer">
+    <div class="answer-row">
+      <span class="answer-label">答案</span>
+      <span class="answer-reveal">(C)</span>
+    </div>
+    <div class="answer-note">
+      設 12 元買 x 枝，則 20 元買 (x−2) 枝（x ≥ 2）。<br>
+      總費用：12x + 20(x−2) ≤ 150<br>
+      → 12x + 20x − 40 ≤ 150 → 32x ≤ 190 → x ≤ 5.9375。<br>
+      最多整數為 <strong>5 枝</strong>。
+    </div>
+  </div>
+</div>
+
+<!-- ══ 二、填充題 ══ -->
+<div class="section-header">二、填充題 <span>每格 5 分，共 65 分</span></div>
+
+<!-- Q6 -->
+<div class="q-card" id="q6">
+  <div class="marked-badge">容易出錯</div>
+  <div class="q-card-top">
+    <div class="q-num">6</div>
+    <button class="flag-btn" onclick="toggleFlag(6)">🚩</button>
+    <div class="q-body">
+      <div class="q-stem">求一元一次不等式的解 <em>（填充題第 1 題，共 7 小題）</em></div>
+    </div>
+  </div>
+  <div class="q-fill">
+    <div style="margin-bottom:10px;">(1) 7x − 8 ≥ 3x + 4　　答：<span class="blank">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></div>
+    <div style="margin-bottom:10px;">(2) 3(x − 2) ≤ 15　　　答：<span class="blank">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></div>
+    <div style="margin-bottom:10px;">(3) −5x + 9 > −6　　　答：<span class="blank">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></div>
+    <div style="margin-bottom:10px;">(4) 2(x+1) + 3 ≥ x + 5　答：<span class="blank">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></div>
+    <div style="margin-bottom:10px;">(5) −0.7x − 1.5 > 2.1x + 1.3　答：<span class="blank">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></div>
+    <div style="margin-bottom:10px;">(6) (1−x)/4 ≤ (3x−2)/6　答：<span class="blank">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></div>
+    <div>(7) x &lt; 3 且 2x+1 > −5　答：<span class="blank">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></div>
+  </div>
+  <div class="q-footer">
+    <div class="answer-row">
+      <span class="answer-label">答案</span>
+    </div>
+    <div class="answer-note">
+      (1) 7x−8 ≥ 3x+4 → 4x ≥ 12 → <strong>x ≥ 3</strong><br>
+      (2) 3x−6 ≤ 15 → 3x ≤ 21 → <strong>x ≤ 7</strong><br>
+      (3) −5x > −15 → x &lt; 3（除負數翻轉）→ <strong>x &lt; 3</strong><br>
+      (4) 2x+2+3 ≥ x+5 → x ≥ 0 → <strong>x ≥ 0</strong><br>
+      (5) −0.7x−2.1x > 1.3+1.5 → −2.8x > 2.8 → x &lt; −1 → <strong>x &lt; −1</strong><br>
+      (6) 通分（乘12）：3(1−x) ≤ 2(3x−2) → 3−3x ≤ 6x−4 → 7 ≤ 9x → <strong>x ≥ 7/9</strong><br>
+      (7) 由 2x+1&gt;−5 得 x&gt;−3；與 x&lt;3 聯立 → <strong>−3 &lt; x &lt; 3</strong>
+    </div>
+  </div>
+</div>
+
+<!-- Q7 -->
+<div class="q-card" id="q7">
+  <div class="marked-badge">容易出錯</div>
+  <div class="q-card-top">
+    <div class="q-num">7</div>
+    <button class="flag-btn" onclick="toggleFlag(7)">🚩</button>
+    <div class="q-body">
+      <div class="q-stem">已知一個長方形的長是寬的 2 倍多 3 公分。若寬為 <em>x</em> 公分，且長方形周長不超過 42 公分，則依題意可列出不等式為 <span class="blank">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>。</div>
+    </div>
+  </div>
+  <div class="q-footer">
+    <div class="answer-row">
+      <span class="answer-label">答案</span>
+      <span class="answer-reveal">0 &lt; 2(2x+3+x) ≤ 42</span>
+    </div>
+    <div class="answer-note">
+      長 = 2x+3，寬 = x，周長 = 2×(長+寬) = 2(2x+3+x)。<br>
+      「不超過42」且長方形有實際意義（x &gt; 0），故列式 <strong>0 &lt; 2(2x+3+x) ≤ 42</strong>。
+    </div>
+  </div>
+</div>
+
+<!-- Q8 -->
+<div class="q-card" id="q8">
+  <div class="marked-badge">容易出錯</div>
+  <div class="q-card-top">
+    <div class="q-num">8</div>
+    <button class="flag-btn" onclick="toggleFlag(8)">🚩</button>
+    <div class="q-body">
+      <div class="q-stem">若點 <em>A(3x+6, 3x−5)</em> 在第四象限，則 <em>x</em> 值的範圍為 <span class="blank">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>。</div>
+    </div>
+  </div>
+  <div class="q-footer">
+    <div class="answer-row">
+      <span class="answer-label">答案</span>
+      <span class="answer-reveal">−2 &lt; x &lt; 5/3</span>
+    </div>
+    <div class="answer-note">
+      第四象限：x 座標 &gt; 0，y 座標 &lt; 0。<br>
+      3x+6 &gt; 0 → x &gt; −2；3x−5 &lt; 0 → x &lt; 5/3。<br>
+      聯立得 <strong>−2 &lt; x &lt; 5/3</strong>。
+    </div>
+  </div>
+</div>
+
+<!-- Q9 -->
+<div class="q-card" id="q9">
+  <div class="marked-badge">容易出錯</div>
+  <div class="q-card-top">
+    <div class="q-num">9</div>
+    <button class="flag-btn" onclick="toggleFlag(9)">🚩</button>
+    <div class="q-body">
+      <div class="q-stem">已知一個三角形的底為 <em>(2x−5)</em> 公分，高為 6 公分，且面積不超過 18 平方公分，則：<br>
+      (1) 依題意可列出不等式為 <span class="blank">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><br>
+      (2) 承(1)，x 的值至多為 <span class="blank">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></div>
+    </div>
+  </div>
+  <div class="q-footer">
+    <div class="answer-row">
+      <span class="answer-label">答案</span>
+      <span class="answer-reveal">(1) 0 &lt; 6(2x−5)/2 ≤ 18　(2) x 至多為 11/2</span>
+    </div>
+    <div class="answer-note">
+      面積 = 底×高÷2 = 6(2x−5)/2。底須為正：2x−5 &gt; 0 → x &gt; 5/2。<br>
+      面積 ≤ 18：6(2x−5)/2 ≤ 18 → 3(2x−5) ≤ 18 → 6x−15 ≤ 18 → 6x ≤ 33 → x ≤ 11/2。<br>
+      故 x 至多為 <strong>11/2</strong>。
+    </div>
+  </div>
+</div>
+
+<!-- Q10 -->
+<div class="q-card" id="q10">
+  <div class="marked-badge">容易出錯</div>
+  <div class="q-card-top">
+    <div class="q-num">10</div>
+    <button class="flag-btn" onclick="toggleFlag(10)">🚩</button>
+    <div class="q-body">
+      <div class="q-stem">祐丞目前的存款有 900 元。若從今天起每週存 500 元，則至少存 <span class="blank">&nbsp;&nbsp;&nbsp;&nbsp;</span> 週後，祐丞就能買到價值 5700 元的手機。</div>
+    </div>
+  </div>
+  <div class="q-footer">
+    <div class="answer-row">
+      <span class="answer-label">答案</span>
+      <span class="answer-reveal">10 週</span>
+    </div>
+    <div class="answer-note">
+      設存 x 週後：900 + 500x ≥ 5700 → 500x ≥ 4800 → x ≥ 9.6。<br>
+      最小整數為 <strong>10 週</strong>。
+    </div>
+  </div>
+</div>
+
+<!-- Q11 -->
+<div class="q-card" id="q11">
+  <div class="marked-badge">容易出錯</div>
+  <div class="q-card-top">
+    <div class="q-num">11</div>
+    <button class="flag-btn" onclick="toggleFlag(11)">🚩</button>
+    <div class="q-body">
+      <div class="q-stem">已知 <em>2x + a &lt; x + 2</em> 為 x 的一次不等式，若 <em>x = 1</em> 是不等式的一個解，則 <em>a</em> 的範圍為 <span class="blank">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>。</div>
+    </div>
+  </div>
+  <div class="q-footer">
+    <div class="answer-row">
+      <span class="answer-label">答案</span>
+      <span class="answer-reveal">a &lt; 1</span>
+    </div>
+    <div class="answer-note">
+      將 x=1 代入：2(1)+a &lt; 1+2 → 2+a &lt; 3 → <strong>a &lt; 1</strong>。
+    </div>
+  </div>
+</div>
+
+<!-- ══ 三、計算題 ══ -->
+<div class="section-header">三、計算題 <span>每題 5 分，共 10 分</span></div>
+
+<!-- Q12 -->
+<div class="q-card" id="q12">
+  <div class="marked-badge">容易出錯</div>
+  <div class="q-card-top">
+    <div class="q-num">12</div>
+    <button class="flag-btn" onclick="toggleFlag(12)">🚩</button>
+    <div class="q-body">
+      <div class="q-stem">解一元一次不等式：<em>5x − [6x − (2x + 4)] > 3</em></div>
+    </div>
+  </div>
+  <div class="q-footer">
+    <div class="answer-row">
+      <span class="answer-label">答案</span>
+      <span class="answer-reveal">x > −1</span>
+    </div>
+    <div class="answer-note">
+      <div class="calc-steps">
+        <span class="step">5x − [6x − (2x+4)] > 3</span>
+        <span class="step">5x − (6x − 2x − 4) > 3</span>
+        <span class="step">5x − (4x − 4) > 3</span>
+        <span class="step">5x − 4x + 4 > 3</span>
+        <span class="step"><strong>x > −1</strong></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Q13 -->
+<div class="q-card" id="q13">
+  <div class="marked-badge">容易出錯</div>
+  <div class="q-card-top">
+    <div class="q-num">13</div>
+    <button class="flag-btn" onclick="toggleFlag(13)">🚩</button>
+    <div class="q-body">
+      <div class="q-stem">小凡參加數學競試，共 25 題，每答對 1 題得 4 分，答錯 1 題倒扣 1 分。已知小凡做了全部的試題，則他<em>至少要答對幾題，得分才不會低於 75 分</em>？</div>
+    </div>
+  </div>
+  <div class="q-footer">
+    <div class="answer-row">
+      <span class="answer-label">答案</span>
+      <span class="answer-reveal">至少 20 題</span>
+    </div>
+    <div class="answer-note">
+      <div class="calc-steps">
+        <span class="step">設答對 x 題，答錯 (25−x) 題</span>
+        <span class="step">4x − (25−x) ≥ 75</span>
+        <span class="step">4x − 25 + x ≥ 75</span>
+        <span class="step">5x ≥ 100</span>
+        <span class="step"><strong>x ≥ 20，故至少要答對 20 題</strong></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="empty-state" id="empty-state">目前沒有已標記的題目。<br>點擊每題左側的 🚩 按鈕來標記容易出錯的題目！</div>
+
+</div><!-- /main -->
+
+<script>
+  const STORAGE_KEY = 'math_4_2_flags';
+  let flagged = new Set();
+  let currentFilter = 'all';
+  const TOTAL = 13;
+
+  function loadFlags() {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) flagged = new Set(JSON.parse(saved));
+    } catch(e) {}
+    flagged.forEach(id => applyFlag(id, true, false));
+    updateCount();
+  }
+
+  function applyFlag(id, state, save) {
+    const card = document.getElementById('q' + id);
+    if (!card) return;
+    if (state) { card.classList.add('marked'); flagged.add(id); }
+    else { card.classList.remove('marked'); flagged.delete(id); }
+    if (save) { saveFlags(); updateCount(); filterCards(currentFilter); }
+  }
+
+  function toggleFlag(id) { applyFlag(id, !flagged.has(id), true); }
+
+  function saveFlags() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify([...flagged])); } catch(e) {}
+  }
+
+  function updateCount() {
+    document.getElementById('flag-count-num').textContent = flagged.size;
+  }
+
+  function filterCards(mode) {
+    currentFilter = mode;
+    document.getElementById('btn-all').classList.toggle('active', mode === 'all');
+    document.getElementById('btn-marked').classList.toggle('active', mode === 'marked');
+    let vis = 0;
+    for (let i = 1; i <= TOTAL; i++) {
+      const card = document.getElementById('q' + i);
+      if (!card) continue;
+      if (mode === 'all') { card.classList.remove('hidden'); vis++; }
+      else { if (flagged.has(i)) { card.classList.remove('hidden'); vis++; } else { card.classList.add('hidden'); } }
+    }
+    document.getElementById('empty-state').classList.toggle('show', mode === 'marked' && vis === 0);
+  }
+
+  loadFlags();
+</script>
+</body>
+</html>

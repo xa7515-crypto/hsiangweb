@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>從零到電影級大片 — Google Flow 實戰教學</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;700;900&family=Inter:wght@300;400;600;800&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --black:   #0A0A0F;
+    --deep:    #111120;
+    --panel:   #1A1A2E;
+    --glass:   rgba(255,255,255,0.05);
+    --border:  rgba(255,255,255,0.1);
+    --blue:    #4A9EFF;
+    --cyan:    #00D4FF;
+    --purple:  #7C5CFA;
+    --glow:    rgba(74,158,255,0.25);
+    --white:   #F0F4FF;
+    --muted:   rgba(240,244,255,0.55);
+    --font-zh: 'Noto Sans TC', sans-serif;
+    --font-en: 'Inter', sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: var(--font-zh);
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+  }
+
+  /* ── STAR FIELD ── */
+  .stars {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background:
+      radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,.7) 0, transparent 100%),
+      radial-gradient(1px 1px at 30% 5%,  rgba(255,255,255,.5) 0, transparent 100%),
+      radial-gradient(1px 1px at 55% 25%, rgba(255,255,255,.6) 0, transparent 100%),
+      radial-gradient(1px 1px at 75% 10%, rgba(255,255,255,.4) 0, transparent 100%),
+      radial-gradient(1px 1px at 90% 35%, rgba(255,255,255,.7) 0, transparent 100%),
+      radial-gradient(1px 1px at 20% 60%, rgba(255,255,255,.3) 0, transparent 100%),
+      radial-gradient(1px 1px at 45% 75%, rgba(255,255,255,.5) 0, transparent 100%),
+      radial-gradient(1px 1px at 65% 85%, rgba(255,255,255,.4) 0, transparent 100%),
+      radial-gradient(1px 1px at 85% 70%, rgba(255,255,255,.6) 0, transparent 100%),
+      radial-gradient(1px 1px at 5%  90%, rgba(255,255,255,.4) 0, transparent 100%);
+  }
+
+  /* ── DECK ── */
+  .deck {
+    position: relative; z-index: 1;
+    height: 100vh; width: 100vw;
+    overflow: hidden;
+  }
+
+  .slide {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    padding: 48px 64px;
+    opacity: 0;
+    transform: translateX(60px);
+    transition: opacity .55s cubic-bezier(.4,0,.2,1), transform .55s cubic-bezier(.4,0,.2,1);
+    pointer-events: none;
+  }
+  .slide.active {
+    opacity: 1; transform: translateX(0); pointer-events: all;
+  }
+  .slide.out-left {
+    opacity: 0; transform: translateX(-60px);
+  }
+
+  .slide-inner {
+    width: 100%; max-width: 1100px;
+    height: 100%;
+    display: flex; flex-direction: column; justify-content: center;
+  }
+
+  /* ── SLIDE 1 HERO ── */
+  .hero {
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 40%, rgba(74,158,255,.18) 0, transparent 70%),
+      radial-gradient(ellipse 50% 40% at 80% 70%, rgba(124,92,250,.12) 0, transparent 60%),
+      var(--deep);
+  }
+
+  .hero-eyebrow {
+    font-family: var(--font-en);
+    font-size: .75rem; font-weight: 600; letter-spacing: .25em;
+    color: var(--cyan); text-transform: uppercase;
+    margin-bottom: 24px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .hero-eyebrow::before {
+    content: ''; display: block;
+    width: 32px; height: 1px; background: var(--cyan);
+  }
+
+  .hero-title {
+    font-size: clamp(3rem, 6vw, 5.5rem);
+    font-weight: 900; line-height: 1.08;
+    background: linear-gradient(135deg, var(--white) 0%, var(--cyan) 60%, var(--purple) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 12px;
+  }
+  .hero-subtitle {
+    font-family: var(--font-en);
+    font-size: 1.1rem; font-weight: 600; letter-spacing: .1em;
+    color: var(--blue); margin-bottom: 36px;
+  }
+  .hero-desc {
+    font-size: .95rem; line-height: 1.85;
+    color: var(--muted); max-width: 640px;
+    border-left: 2px solid var(--purple);
+    padding-left: 20px;
+  }
+
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--glass); border: 1px solid var(--border);
+    border-radius: 100px; padding: 8px 20px;
+    font-size: .8rem; color: var(--muted);
+    margin-top: 40px; backdrop-filter: blur(8px);
+  }
+  .hero-badge span { color: var(--cyan); font-weight: 700; }
+
+  /* ── COMMON HEADINGS ── */
+  .slide-tag {
+    font-family: var(--font-en);
+    font-size: .7rem; font-weight: 700; letter-spacing: .22em;
+    color: var(--cyan); text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .slide-title {
+    font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+    font-weight: 900; line-height: 1.15;
+    margin-bottom: 8px;
+  }
+  .slide-title .accent {
+    background: linear-gradient(90deg, var(--blue), var(--cyan));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .slide-subtitle {
+    font-size: .9rem; color: var(--muted); margin-bottom: 36px;
+  }
+
+  /* ── CARD GRID ── */
+  .card-grid {
+    display: grid;
+    gap: 16px;
+  }
+  .card-grid.col-3 { grid-template-columns: repeat(3, 1fr); }
+  .card-grid.col-2 { grid-template-columns: repeat(2, 1fr); }
+
+  .card {
+    background: var(--glass);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    transition: border-color .25s;
+    backdrop-filter: blur(6px);
+  }
+  .card:hover { border-color: var(--blue); }
+
+  .card-icon {
+    font-size: 1.6rem; margin-bottom: 12px;
+    display: block;
+  }
+  .card-title {
+    font-size: .95rem; font-weight: 700;
+    color: var(--white); margin-bottom: 6px;
+  }
+  .card-body {
+    font-size: .82rem; line-height: 1.7; color: var(--muted);
+  }
+
+  /* ── STAT CALLOUT ── */
+  .stat-row {
+    display: flex; gap: 24px; margin-bottom: 32px;
+  }
+  .stat {
+    flex: 1;
+    background: var(--glass);
+    border: 1px solid var(--border);
+    border-radius: 14px; padding: 20px 24px;
+    text-align: center;
+  }
+  .stat-num {
+    font-family: var(--font-en);
+    font-size: 2.4rem; font-weight: 800;
+    background: linear-gradient(90deg, var(--blue), var(--cyan));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+  }
+  .stat-label {
+    font-size: .78rem; color: var(--muted); margin-top: 4px;
+  }
+
+  /* ── STEP FLOW ── */
+  .steps {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+  }
+  .step {
+    text-align: center; position: relative; padding: 0 12px;
+  }
+  .step:not(:last-child)::after {
+    content: '→';
+    position: absolute; right: -8px; top: 18px;
+    font-size: 1.2rem; color: var(--blue);
+  }
+  .step-num {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--blue), var(--purple));
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-en); font-weight: 800; font-size: .95rem;
+    margin: 0 auto 12px;
+  }
+  .step-title { font-size: .85rem; font-weight: 700; margin-bottom: 4px; }
+  .step-desc  { font-size: .75rem; color: var(--muted); line-height: 1.6; }
+
+  /* ── TWO-COL ── */
+  .two-col {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 40px;
+    align-items: start;
+  }
+
+  /* ── QUOTE ── */
+  .quote {
+    background: linear-gradient(135deg, rgba(74,158,255,.08), rgba(124,92,250,.08));
+    border: 1px solid rgba(74,158,255,.3);
+    border-radius: 14px; padding: 20px 24px;
+    font-size: .88rem; line-height: 1.75; color: var(--muted);
+    font-style: italic;
+    position: relative; margin-top: 20px;
+  }
+  .quote::before {
+    content: '"';
+    position: absolute; top: -16px; left: 16px;
+    font-size: 4rem; color: var(--blue); opacity: .3;
+    font-family: serif; line-height: 1;
+  }
+
+  /* ── NUMBERED LIST ── */
+  .num-list { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+  .num-list li {
+    display: flex; align-items: flex-start; gap: 14px;
+    font-size: .88rem; line-height: 1.7; color: var(--muted);
+  }
+  .num-list .bullet {
+    min-width: 26px; height: 26px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--blue), var(--cyan));
+    color: var(--black); font-weight: 800; font-size: .72rem;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 1px;
+  }
+
+  /* ── FEATURE SUMMARY (Slide 8) ── */
+  .feature-list {
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .feature-item {
+    display: flex; align-items: center; gap: 16px;
+    background: var(--glass); border: 1px solid var(--border);
+    border-radius: 12px; padding: 14px 20px;
+    transition: border-color .2s;
+  }
+  .feature-item:hover { border-color: var(--blue); }
+  .feature-num {
+    font-family: var(--font-en); font-weight: 800; font-size: 1.4rem;
+    color: var(--blue); min-width: 32px;
+  }
+  .feature-content .feature-title { font-size: .9rem; font-weight: 700; }
+  .feature-content .feature-desc  { font-size: .78rem; color: var(--muted); margin-top: 2px; }
+
+  /* ── CLOSING SLIDE ── */
+  .closing {
+    text-align: center;
+    background:
+      radial-gradient(ellipse 70% 60% at 50% 50%, rgba(124,92,250,.2) 0, transparent 70%),
+      radial-gradient(ellipse 50% 40% at 20% 80%, rgba(74,158,255,.12) 0, transparent 60%),
+      var(--deep);
+  }
+  .closing .slide-inner { align-items: center; }
+
+  .closing-title {
+    font-size: clamp(2rem, 4vw, 3.2rem);
+    font-weight: 900; line-height: 1.2; margin-bottom: 20px;
+  }
+  .closing-body {
+    font-size: .95rem; line-height: 1.85; color: var(--muted);
+    max-width: 680px; margin-bottom: 40px;
+  }
+  .cta-row { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; }
+  .cta-btn {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 14px 28px; border-radius: 100px;
+    font-weight: 700; font-size: .9rem; cursor: pointer;
+    border: none; transition: transform .2s, box-shadow .2s;
+  }
+  .cta-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px var(--glow); }
+  .cta-primary {
+    background: linear-gradient(135deg, var(--blue), var(--purple));
+    color: var(--white);
+  }
+  .cta-secondary {
+    background: var(--glass); border: 1px solid var(--border);
+    color: var(--white); backdrop-filter: blur(8px);
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; bottom: 36px; left: 50%; transform: translateX(-50%);
+    z-index: 100;
+    display: flex; align-items: center; gap: 16px;
+    background: rgba(10,10,15,.75); backdrop-filter: blur(16px);
+    border: 1px solid var(--border); border-radius: 100px;
+    padding: 10px 24px;
+  }
+
+  nav button {
+    background: none; border: none; cursor: pointer;
+    color: var(--muted); font-size: 1.1rem; padding: 4px 8px;
+    transition: color .2s;
+    display: flex; align-items: center;
+  }
+  nav button:hover:not(:disabled) { color: var(--white); }
+  nav button:disabled { opacity: .3; cursor: default; }
+
+  .dots { display: flex; gap: 6px; align-items: center; }
+  .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--border); cursor: pointer;
+    transition: background .25s, transform .25s;
+  }
+  .dot.active { background: var(--cyan); transform: scale(1.5); }
+
+  .slide-counter {
+    font-family: var(--font-en); font-size: .72rem;
+    color: var(--muted); min-width: 44px; text-align: center;
+  }
+
+  /* ── PROGRESS ── */
+  .progress {
+    position: fixed; top: 0; left: 0; height: 2px; z-index: 200;
+    background: linear-gradient(90deg, var(--blue), var(--cyan));
+    transition: width .4s cubic-bezier(.4,0,.2,1);
+  }
+
+  /* ── SLIDE BACKGROUNDS ── */
+  .s2 { background: radial-gradient(ellipse 60% 50% at 20% 50%, rgba(74,158,255,.1) 0, transparent 60%), var(--deep); }
+  .s3 { background: radial-gradient(ellipse 60% 50% at 80% 30%, rgba(0,212,255,.08) 0, transparent 60%), var(--panel); }
+  .s4 { background: radial-gradient(ellipse 60% 50% at 15% 70%, rgba(124,92,250,.1) 0, transparent 60%), var(--deep); }
+  .s5 { background: radial-gradient(ellipse 60% 50% at 80% 50%, rgba(74,158,255,.1) 0, transparent 60%), var(--panel); }
+  .s6 { background: radial-gradient(ellipse 60% 50% at 30% 30%, rgba(0,212,255,.08) 0, transparent 60%), var(--deep); }
+  .s7 { background: radial-gradient(ellipse 60% 50% at 70% 70%, rgba(124,92,250,.1) 0, transparent 60%), var(--panel); }
+  .s8 { background: var(--deep); }
+  .s9 { background: radial-gradient(ellipse 80% 60% at 50% 40%, rgba(74,158,255,.1) 0, transparent 60%), var(--panel); }
+
+  /* responsive */
+  @media (max-width: 768px) {
+    .slide { padding: 28px 24px; }
+    .card-grid.col-3 { grid-template-columns: 1fr; }
+    .card-grid.col-2 { grid-template-columns: 1fr; }
+    .two-col { grid-template-columns: 1fr; gap: 20px; }
+    .steps { grid-template-columns: repeat(2, 1fr); }
+    .step:not(:last-child)::after { display: none; }
+    .stat-row { flex-wrap: wrap; }
+    nav { padding: 8px 16px; gap: 10px; }
+  }
+</style>
+</head>
+<body>
+<div class="stars"></div>
+<div class="progress" id="progress"></div>
+
+<div class="deck" id="deck">
+
+  <!-- SLIDE 1: Hero -->
+  <section class="slide hero active" id="slide-1">
+    <div class="slide-inner">
+      <div class="hero-eyebrow">Google Flow 實戰教學</div>
+      <h1 class="hero-title">從零到<br>電影級大片</h1>
+      <p class="hero-subtitle">MULTIMODAL WORKFLOW · AI 製片新紀元</p>
+      <p class="hero-desc">在影音內容主宰流量的時代，Google Labs 推出的「Flow」正以多模態工作流重新定義創作規則。這款免費 AI 製片神器，讓零基礎創作者也能生成高畫質影像，開啟全民製片的新紀元。</p>
+      <div class="hero-badge">🎬 <span>5 大驚喜功能</span> · 完整實戰指南</div>
+    </div>
+  </section>
+
+  <!-- SLIDE 2: AI 影片新紀元 -->
+  <section class="slide s2" id="slide-2">
+    <div class="slide-inner">
+      <div class="slide-tag">Introduction</div>
+      <h2 class="slide-title">AI 影片生成的<span class="accent">新紀元</span></h2>
+      <p class="slide-subtitle">傳統製片的高門檻，正被 Google Flow 徹底打破</p>
+      <div class="card-grid col-3">
+        <div class="card">
+          <span class="card-icon">🎬</span>
+          <div class="card-title">降低門檻</div>
+          <div class="card-body">無需專業設備，AI 協作完成全流程。傳統製片的軟硬體要求大幅簡化。</div>
+        </div>
+        <div class="card">
+          <span class="card-icon">⚡</span>
+          <div class="card-title">快速生成</div>
+          <div class="card-body">多模態工作流加速創作效率，LLM 協作方式直接生成高畫質影像。</div>
+        </div>
+        <div class="card">
+          <span class="card-icon">🌍</span>
+          <div class="card-title">全民可用</div>
+          <div class="card-body">從實驗室玩具轉向專業生產力工具，讓每個人都能成為導演。</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 3: 點數回血 -->
+  <section class="slide s3" id="slide-3">
+    <div class="slide-inner">
+      <div class="slide-tag">驚喜點一</div>
+      <h2 class="slide-title"><span class="accent">點數自動回血！</span></h2>
+      <p class="slide-subtitle">免費玩家的長期福利 — 點數機制全解析</p>
+      <div class="stat-row">
+        <div class="stat">
+          <div class="stat-num">100</div>
+          <div class="stat-label">新用戶初始點數</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">50</div>
+          <div class="stat-label">每日登入贈送</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">150</div>
+          <div class="stat-label">點數上限（不累計）</div>
+        </div>
+      </div>
+      <div class="card-grid col-2">
+        <div class="card">
+          <div class="card-title">⚡ Fast 快速模式</div>
+          <div class="card-body">每次僅需 <strong style="color:var(--cyan)">20 點</strong>，每日配額足夠生成約 <strong style="color:var(--cyan)">7 個片段</strong>，適合初學者大量實驗。</div>
+        </div>
+        <div class="card">
+          <div class="card-title">🎯 Quality 品質模式</div>
+          <div class="card-body">追求極致視覺，每次需 <strong style="color:var(--purple)">100 點</strong>，建議在關鍵場景使用，追求最高畫質。</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 4: Nana 2 -->
+  <section class="slide s4" id="slide-4">
+    <div class="slide-inner">
+      <div class="slide-tag">驚喜點二</div>
+      <h2 class="slide-title">Nana 2 繪圖模型<span class="accent">完全免費</span></h2>
+      <p class="slide-subtitle">支援中文提示詞 · 0 點數無限制生成關鍵幀</p>
+      <div class="card-grid col-3">
+        <div class="card">
+          <span class="card-icon">🎨</span>
+          <div class="card-title">PR 創意引擎</div>
+          <div class="card-body">專攻畫質與創意細節，適合需要精緻視覺表現的關鍵場景，提供極致畫面品質。</div>
+        </div>
+        <div class="card">
+          <span class="card-icon">🚀</span>
+          <div class="card-title">2 快速模型</div>
+          <div class="card-body">在生成速度上表現卓越，同樣支援中文提示詞，完全免費使用。</div>
+        </div>
+        <div class="card">
+          <span class="card-icon">🇹🇼</span>
+          <div class="card-title">中文提示詞支援</div>
+          <div class="card-body">創作者直接輸入母語描述即可精準呈現腦中畫面，大幅降低 AI 溝通成本。</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 5: 鏡頭語言 -->
+  <section class="slide s5" id="slide-5">
+    <div class="slide-inner">
+      <div class="slide-tag">驚喜點三</div>
+      <h2 class="slide-title">好萊塢等級的<span class="accent">鏡頭語言</span></h2>
+      <p class="slide-subtitle">動動手指就能操控專業運鏡</p>
+      <div class="two-col">
+        <div>
+          <div class="card-grid col-1" style="gap:14px">
+            <div class="card">
+              <span class="card-icon">🎥</span>
+              <div class="card-title">3D 環繞鏡頭</div>
+              <div class="card-body">提供左環繞、右環繞、上環繞等選項，增加畫面的空間感與動態深度。與傳統 2D 縮放不同，Flow 的運鏡基於 3D 空間推移，賦予影像強烈的敘事張力。</div>
+            </div>
+            <div class="card">
+              <span class="card-icon">🔍</span>
+              <div class="card-title">焦距控制</div>
+              <div class="card-body">支援特寫、大特寫等不同鏡頭語言，讓創作者能模擬專業攝影師的運鏡手法。</div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="quote">
+            它會非常重視鏡頭的一個使用⋯⋯讓它有左右環繞、上下的環繞的效果，鏡頭會從左邊一直往右邊跑。
+          </div>
+          <div style="margin-top:20px; padding:16px; background:var(--glass); border-radius:12px; border:1px solid var(--border);">
+            <div style="font-size:.8rem; color:var(--muted); line-height:1.7">
+              🎬 基於 3D 空間的鏡頭推移<br>
+              📐 專業攝影師級別的焦距控制<br>
+              🎞️ 強烈的視覺敘事張力
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 6: Gemini -->
+  <section class="slide s6" id="slide-6">
+    <div class="slide-inner">
+      <div class="slide-tag">驚喜點四</div>
+      <h2 class="slide-title">Gemini 跨界助攻</h2>
+      <p class="slide-subtitle">解決「時空連貫性」痛點 — AI 影片創作的終極解方</p>
+      <div class="steps" style="margin-bottom:28px">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-title">拆解長片</div>
+          <div class="step-desc">80秒分成10段，每段8秒</div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-title">生成關鍵幀</div>
+          <div class="step-desc">精準產出11張代表性關鍵幀</div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-title">Gemini 規劃</div>
+          <div class="step-desc">制定連貫提示詞，維持角色一致</div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-title">匯入 Flow</div>
+          <div class="step-desc">首尾相連，拼湊完整故事</div>
+        </div>
+      </div>
+      <div class="quote">
+        核心策略：「第一段影片的尾幀，即為第二段影片的頭幀」。透過 Gemini 規劃連貫的提示詞，確保角色特徵、服裝、場景在 11 張圖片中保持高度一致，再將這些圖檔首尾相連地匯入 Flow，拼湊出邏輯連貫且視覺統一的長篇故事。
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 7: 音效配樂 -->
+  <section class="slide s7" id="slide-7">
+    <div class="slide-inner">
+      <div class="slide-tag">驚喜點五</div>
+      <h2 class="slide-title">整合<span class="accent">音效與配樂</span></h2>
+      <p class="slide-subtitle">一站式完成 30 秒短片 — 聲音佔了靈魂的 50%</p>
+      <div class="card-grid col-3">
+        <div class="card">
+          <span class="card-icon">🎵</span>
+          <div class="card-title">配樂生成</div>
+          <div class="card-body">每次產出 <strong style="color:var(--cyan)">30 秒</strong>音軌，長片可分段產出後拼接，組成完整視聽作品。</div>
+        </div>
+        <div class="card">
+          <span class="card-icon">🎙️</span>
+          <div class="card-title">語音合成</div>
+          <div class="card-body">支援從英文切換至<strong style="color:var(--cyan)">中文普通話</strong>，能自動為角色生成旁白或對話。</div>
+        </div>
+        <div class="card">
+          <span class="card-icon">📺</span>
+          <div class="card-title">輸出規格</div>
+          <div class="card-body">免費版提供 <strong style="color:var(--cyan)">720P</strong> 解析度；付費 Pro 版則可升級至 <strong style="color:var(--purple)">1080P</strong> 專業等級。</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 8: 總覽 -->
+  <section class="slide s8" id="slide-8">
+    <div class="slide-inner">
+      <div class="slide-tag">Summary</div>
+      <h2 class="slide-title">五大功能<span class="accent">總覽</span></h2>
+      <p class="slide-subtitle">Google Flow 打造從零到電影級大片的完整工作流</p>
+      <div class="feature-list">
+        <div class="feature-item">
+          <div class="feature-num">1</div>
+          <div class="feature-content">
+            <div class="feature-title">點數自動回血</div>
+            <div class="feature-desc">每日登入贈送 50 點，Fast 模式每次僅需 20 點，鼓勵每日產出</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-num">2</div>
+          <div class="feature-content">
+            <div class="feature-title">Nana 2 完全免費</div>
+            <div class="feature-desc">0 點數無限制生成關鍵幀，支援中文提示詞，降低溝通成本</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-num">3</div>
+          <div class="feature-content">
+            <div class="feature-title">3D 鏡頭語言</div>
+            <div class="feature-desc">環繞鏡頭與焦距控制，賦予影像強烈的敘事張力</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-num">4</div>
+          <div class="feature-content">
+            <div class="feature-title">Gemini 時空連貫</div>
+            <div class="feature-desc">LLM 腳本編導確保角色與場景一致性，拼湊完整長篇故事</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-num">5</div>
+          <div class="feature-content">
+            <div class="feature-title">音效配樂整合</div>
+            <div class="feature-desc">一站式生成配樂與語音，免費版 720P、Pro 版 1080P</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 9: 實戰建議 -->
+  <section class="slide s9" id="slide-9">
+    <div class="slide-inner">
+      <div class="slide-tag">實戰指南</div>
+      <h2 class="slide-title">如何善用 <span class="accent">Google Flow</span></h2>
+      <p class="slide-subtitle">初學者最佳策略 × 進階創作流程</p>
+      <div class="two-col">
+        <div>
+          <h3 style="font-size:.85rem; font-weight:700; color:var(--cyan); margin-bottom:14px; letter-spacing:.05em">🌱 初學者最佳策略</h3>
+          <ul class="num-list">
+            <li><span class="bullet">①</span>善用 Fast 模式進行大量實驗，每日約可生成 7 個片段</li>
+            <li><span class="bullet">②</span>以 Nana 2 無限制探索視覺風格，無需擔心點數消耗</li>
+            <li><span class="bullet">③</span>先用中文提示詞熟悉 AI 溝通邏輯</li>
+            <li><span class="bullet">④</span>從 30 秒短片開始練習，再挑戰長片製作</li>
+          </ul>
+        </div>
+        <div>
+          <h3 style="font-size:.85rem; font-weight:700; color:var(--purple); margin-bottom:14px; letter-spacing:.05em">🚀 進階創作流程</h3>
+          <ul class="num-list">
+            <li><span class="bullet" style="background:linear-gradient(135deg,var(--purple),var(--blue))">①</span>以 Gemini 作為腳本編導，規劃連貫提示詞</li>
+            <li><span class="bullet" style="background:linear-gradient(135deg,var(--purple),var(--blue))">②</span>拆解長片為多段微片段，確保「尾幀即下一段頭幀」</li>
+            <li><span class="bullet" style="background:linear-gradient(135deg,var(--purple),var(--blue))">③</span>關鍵場景使用 Quality 模式提升畫質</li>
+            <li><span class="bullet" style="background:linear-gradient(135deg,var(--purple),var(--blue))">④</span>分段產出音軌後拼接，完成完整視聽作品</li>
+          </ul>
+        </div>
+      </div>
+      <div style="margin-top:24px; background:var(--glass); border:1px solid var(--border); border-radius:12px; padding:16px 20px;">
+        <p style="font-size:.85rem; color:var(--muted); line-height:1.7; font-style:italic; text-align:center">
+          💡 這種整合影像、運動、配樂與語音的一站式工作流，真正實現了「一個人就是一支製片隊伍」。
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 10: Closing -->
+  <section class="slide closing" id="slide-10">
+    <div class="slide-inner">
+      <div class="slide-tag" style="text-align:center; margin-bottom:20px">結語</div>
+      <h2 class="closing-title">AI 正在重塑我們的<br><span class="accent">故事敘說方式</span></h2>
+      <p class="closing-body">
+        Google Flow 的問世，預示著「技術門檻」已不再是影像創作的攔路虎。然而，當電影級的精美畫面變得隨手可得時，我們最核心的價值——對人性的深刻觀察、獨特的創意洞察與情感共鳴——才是真正的競爭優勢。<br><br>
+        <strong style="color:var(--cyan)">AI 是性能最強的畫筆，但故事的靈魂始終掌握在敘事者手中。</strong>
+      </p>
+      <div class="cta-row">
+        <button class="cta-btn cta-primary">🚀 立即註冊體驗 Google Flow</button>
+        <button class="cta-btn cta-secondary" id="restartBtn">↩ 重新觀看簡報</button>
+      </div>
+    </div>
+  </section>
+
+</div><!-- /deck -->
+
+<!-- NAV -->
+<nav>
+  <button id="prevBtn" disabled aria-label="上一頁">&#8592;</button>
+  <div class="dots" id="dots"></div>
+  <button id="nextBtn" aria-label="下一頁">&#8594;</button>
+  <div class="slide-counter" id="counter">1 / 10</div>
+</nav>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const dots   = document.getElementById('dots');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const counter = document.getElementById('counter');
+  const progress = document.getElementById('progress');
+  const total = slides.length;
+  let cur = 0;
+
+  // Build dots
+  slides.forEach((_, i) => {
+    const d = document.createElement('button');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.setAttribute('aria-label', `第 ${i+1} 張`);
+    d.addEventListener('click', () => goTo(i));
+    dots.appendChild(d);
+  });
+
+  function goTo(n, dir = 1) {
+    const prev = cur;
+    slides[prev].classList.remove('active');
+    slides[prev].classList.add(dir >= 0 ? 'out-left' : '');
+    setTimeout(() => slides[prev].classList.remove('out-left'), 550);
+
+    cur = n;
+    slides[cur].classList.add('active');
+
+    // update UI
+    document.querySelectorAll('.dot').forEach((d, i) =>
+      d.classList.toggle('active', i === cur));
+    prevBtn.disabled = cur === 0;
+    nextBtn.disabled = cur === total - 1;
+    counter.textContent = `${cur + 1} / ${total}`;
+    progress.style.width = `${((cur + 1) / total) * 100}%`;
+  }
+
+  prevBtn.addEventListener('click', () => cur > 0 && goTo(cur - 1, -1));
+  nextBtn.addEventListener('click', () => cur < total - 1 && goTo(cur + 1, 1));
+
+  document.getElementById('restartBtn')?.addEventListener('click', () => goTo(0, -1));
+
+  // Keyboard
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { if (cur < total - 1) goTo(cur + 1, 1); }
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   { if (cur > 0) goTo(cur - 1, -1); }
+  });
+
+  // Touch swipe
+  let tx = 0;
+  document.addEventListener('touchstart', e => tx = e.touches[0].clientX, { passive: true });
+  document.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - tx;
+    if (Math.abs(dx) > 50) {
+      if (dx < 0 && cur < total - 1) goTo(cur + 1, 1);
+      if (dx > 0 && cur > 0) goTo(cur - 1, -1);
+    }
+  }, { passive: true });
+
+  // Init progress
+  progress.style.width = `${(1 / total) * 100}%`;
+</script>
+</body>
+</html>

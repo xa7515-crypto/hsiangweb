@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HTML 取代 Markdown？AI 輸出格式的革命</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700;900&family=Space+Mono:wght@400;700&display=swap');
+
+  :root {
+    --ink: #0d0d0d;
+    --paper: #f5f0e8;
+    --accent: #c8402f;
+    --accent2: #2b5ba8;
+    --gold: #d4a017;
+    --mid: #6b6560;
+    --line: #c8bfb0;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Noto Serif TC', serif;
+    background: var(--ink);
+    color: var(--ink);
+    overflow-x: hidden;
+  }
+
+  /* ── slide system ── */
+  .slide {
+    width: 100vw;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 60px 80px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* ── slide 1: cover ── */
+  .slide-cover {
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .slide-cover .bg-grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(200,190,176,0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(200,190,176,0.06) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+  .slide-cover .big-title {
+    font-size: clamp(48px, 8vw, 110px);
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    position: relative;
+    z-index: 1;
+    text-align: center;
+  }
+  .slide-cover .big-title span { color: var(--accent); }
+  .slide-cover .sub {
+    font-family: 'Space Mono', monospace;
+    font-size: 14px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--mid);
+    margin-top: 32px;
+    position: relative; z-index: 1;
+  }
+  .slide-cover .byline {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: rgba(200,190,176,0.4);
+    margin-top: 16px;
+    position: relative; z-index: 1;
+  }
+  .slide-cover .deco-circle {
+    position: absolute;
+    width: 500px; height: 500px;
+    border-radius: 50%;
+    border: 1px solid rgba(200,64,47,0.15);
+    top: -150px; right: -150px;
+  }
+  .slide-cover .deco-circle2 {
+    position: absolute;
+    width: 300px; height: 300px;
+    border-radius: 50%;
+    border: 1px solid rgba(200,64,47,0.08);
+    bottom: -100px; left: -100px;
+  }
+
+  /* ── slide 2: event origin ── */
+  .slide-origin {
+    background: var(--paper);
+    flex-direction: row;
+    gap: 80px;
+    align-items: stretch;
+  }
+  .slide-origin .left { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+  .slide-origin .right { flex: 1; display: flex; align-items: center; justify-content: center; }
+  .tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 20px;
+  }
+  .slide-title {
+    font-size: clamp(32px, 4vw, 56px);
+    font-weight: 900;
+    line-height: 1.1;
+    margin-bottom: 24px;
+  }
+  .body-text {
+    font-size: 17px;
+    line-height: 1.8;
+    color: var(--mid);
+  }
+  .stat-row {
+    display: flex; gap: 32px; margin-top: 32px; flex-wrap: wrap;
+  }
+  .stat { text-align: center; }
+  .stat .num {
+    font-family: 'Space Mono', monospace;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--accent);
+    display: block;
+  }
+  .stat .label {
+    font-size: 12px;
+    color: var(--mid);
+    margin-top: 4px;
+  }
+  .divider { width: 2px; background: var(--line); align-self: stretch; }
+
+  /* ── slide 3: why markdown ── */
+  .slide-why {
+    background: #1a1a2e;
+    color: var(--paper);
+  }
+  .slide-why .tag { color: var(--gold); }
+  .timeline {
+    display: flex;
+    align-items: flex-end;
+    gap: 0;
+    margin-top: 48px;
+    width: 100%;
+    max-width: 900px;
+  }
+  .tl-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+  }
+  .tl-bar {
+    width: 60%;
+    border-radius: 4px 4px 0 0;
+    background: linear-gradient(180deg, var(--accent2), rgba(43,91,168,0.4));
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 12px;
+  }
+  .tl-bar .val {
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    color: white;
+  }
+  .tl-label {
+    margin-top: 12px;
+    font-size: 12px;
+    color: rgba(200,190,176,0.6);
+    text-align: center;
+    font-family: 'Space Mono', monospace;
+  }
+  .tl-baseline {
+    width: 100%;
+    height: 2px;
+    background: rgba(200,190,176,0.15);
+    margin-top: 0;
+  }
+
+  /* ── slide 4: advantages ── */
+  .slide-adv {
+    background: var(--paper);
+  }
+  .adv-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    margin-top: 48px;
+    width: 100%;
+    max-width: 1000px;
+  }
+  .adv-card {
+    background: white;
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    padding: 32px;
+    position: relative;
+    overflow: hidden;
+  }
+  .adv-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 4px; height: 100%;
+    background: var(--accent);
+  }
+  .adv-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 48px;
+    font-weight: 700;
+    color: rgba(200,64,47,0.1);
+    position: absolute;
+    right: 20px; top: 10px;
+    line-height: 1;
+  }
+  .adv-icon { margin-bottom: 16px; }
+  .adv-title {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .adv-desc { font-size: 14px; color: var(--mid); line-height: 1.7; }
+
+  /* ── slide 5: comparison ── */
+  .slide-compare {
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .vs-layout {
+    display: flex;
+    gap: 0;
+    width: 100%;
+    max-width: 1000px;
+    margin-top: 48px;
+    border: 1px solid rgba(200,190,176,0.15);
+  }
+  .vs-col {
+    flex: 1;
+    padding: 40px 32px;
+  }
+  .vs-col.html-col { background: rgba(200,64,47,0.08); border-right: 1px solid rgba(200,190,176,0.15); }
+  .vs-col.md-col { background: rgba(43,91,168,0.08); }
+  .vs-header {
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid rgba(200,190,176,0.15);
+  }
+  .vs-header.red { color: var(--accent); }
+  .vs-header.blue { color: #6b9fff; }
+  .vs-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 12px;
+    font-size: 14px;
+    color: rgba(245,240,232,0.75);
+  }
+  .vs-dot { color: var(--accent); margin-top: 3px; flex-shrink: 0; }
+  .vs-dot.blue-dot { color: #6b9fff; }
+  .vs-divider {
+    width: 1px;
+    background: rgba(200,190,176,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 0;
+  }
+  .vs-badge {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Space Mono', monospace;
+    font-size: 14px;
+    font-weight: 700;
+    padding: 12px 8px;
+    writing-mode: vertical-rl;
+    letter-spacing: 0.1em;
+  }
+
+  /* ── slide 6: quote ── */
+  .slide-quote {
+    background: var(--accent);
+    color: white;
+  }
+  .quote-mark {
+    font-size: 200px;
+    line-height: 0.5;
+    opacity: 0.15;
+    font-family: Georgia, serif;
+    position: absolute;
+    top: 60px; left: 60px;
+  }
+  .quote-text {
+    font-size: clamp(22px, 3vw, 36px);
+    font-weight: 700;
+    line-height: 1.5;
+    max-width: 800px;
+    text-align: center;
+    position: relative; z-index: 1;
+  }
+  .quote-author {
+    margin-top: 32px;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    opacity: 0.7;
+    position: relative; z-index: 1;
+  }
+
+  /* ── slide 7: when to use ── */
+  .slide-when {
+    background: var(--paper);
+  }
+  .when-grid {
+    display: flex;
+    gap: 48px;
+    margin-top: 48px;
+    width: 100%;
+    max-width: 1000px;
+  }
+  .when-col { flex: 1; }
+  .when-head {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding-bottom: 16px;
+    margin-bottom: 24px;
+    border-bottom: 3px solid;
+  }
+  .when-head.html { border-color: var(--accent); color: var(--accent); }
+  .when-head.md { border-color: var(--accent2); color: var(--accent2); }
+  .when-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 16px;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+  .wi-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    margin-top: 8px;
+    flex-shrink: 0;
+  }
+  .wi-dot.red { background: var(--accent); }
+  .wi-dot.blue { background: var(--accent2); }
+
+  /* ── slide 8: conclusion ── */
+  .slide-end {
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .end-line {
+    width: 80px; height: 3px;
+    background: var(--accent);
+    margin: 0 auto 32px;
+  }
+  .end-title {
+    font-size: clamp(36px, 6vw, 80px);
+    font-weight: 900;
+    text-align: center;
+    line-height: 1.1;
+  }
+  .end-title em { font-style: normal; color: var(--accent); }
+  .end-sub {
+    margin-top: 24px;
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    color: rgba(200,190,176,0.5);
+    letter-spacing: 0.2em;
+    text-align: center;
+  }
+  .end-credit {
+    margin-top: 48px;
+    font-size: 12px;
+    color: rgba(200,190,176,0.3);
+    text-align: center;
+    font-family: 'Space Mono', monospace;
+  }
+
+  /* ── slide nav dots ── */
+  .nav {
+    position: fixed;
+    right: 24px; top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 100;
+  }
+  .nav-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.3);
+    cursor: pointer;
+    transition: all 0.3s;
+    border: 1px solid rgba(255,255,255,0.2);
+  }
+  .nav-dot:hover, .nav-dot.active { background: white; transform: scale(1.4); }
+
+  @media (max-width: 768px) {
+    .slide { padding: 40px 24px; }
+    .slide-origin { flex-direction: column; }
+    .adv-grid { grid-template-columns: 1fr; }
+    .when-grid { flex-direction: column; gap: 32px; }
+    .vs-layout { flex-direction: column; }
+    .timeline { overflow-x: auto; min-width: 500px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Nav dots -->
+<nav class="nav" id="nav"></nav>
+
+<!-- ══ SLIDE 1: Cover ══ -->
+<section class="slide slide-cover" data-slide="1">
+  <div class="bg-grid"></div>
+  <div class="deco-circle"></div>
+  <div class="deco-circle2"></div>
+
+  <!-- SVG illustration: competing formats -->
+  <svg width="280" height="100" viewBox="0 0 280 100" style="margin-bottom:40px;position:relative;z-index:1;" xmlns="http://www.w3.org/2000/svg">
+    <!-- HTML badge -->
+    <rect x="0" y="20" width="110" height="60" rx="4" fill="none" stroke="rgba(200,64,47,0.6)" stroke-width="1.5"/>
+    <text x="55" y="42" text-anchor="middle" fill="#c8402f" font-family="Space Mono,monospace" font-size="10" letter-spacing="2">&lt;HTML&gt;</text>
+    <text x="55" y="62" text-anchor="middle" fill="rgba(200,64,47,0.5)" font-family="Space Mono,monospace" font-size="9">&lt;/HTML&gt;</text>
+    <!-- vs -->
+    <text x="140" y="56" text-anchor="middle" fill="rgba(200,190,176,0.3)" font-family="Space Mono,monospace" font-size="18" font-weight="700">VS</text>
+    <!-- MD badge -->
+    <rect x="170" y="20" width="110" height="60" rx="4" fill="none" stroke="rgba(43,91,168,0.5)" stroke-width="1.5"/>
+    <text x="225" y="42" text-anchor="middle" fill="#6b9fff" font-family="Space Mono,monospace" font-size="10" letter-spacing="2"># Markdown</text>
+    <text x="225" y="62" text-anchor="middle" fill="rgba(107,159,255,0.5)" font-family="Space Mono,monospace" font-size="9">**bold** _italic_</text>
+  </svg>
+
+  <div class="big-title">HTML 取代<br><span>Markdown？</span></div>
+  <div class="sub">AI 輸出格式的新革命</div>
+  <div class="byline">Thariq Shihipar, Anthropic · 2026年5月</div>
+</section>
+
+<!-- ══ SLIDE 2: Event Origin ══ -->
+<section class="slide slide-origin" data-slide="2">
+  <div class="left">
+    <div class="tag">— 事件起源</div>
+    <div class="slide-title">一篇文章<br>引爆全球<br>工程師社群</div>
+    <div class="body-text">
+      2026 年 5 月 8 日，Anthropic Claude Code 工程師 <strong>Thariq Shihipar</strong>
+      在 X 平台發表「The Unreasonable Effectiveness of HTML」。
+      16 小時內即登上 Hacker News 熱榜，延燒至各大技術社群。
+    </div>
+    <div class="stat-row">
+      <div class="stat"><span class="num">440萬+</span><div class="label">16hr 瀏覽次數</div></div>
+      <div class="stat"><span class="num">8,200+</span><div class="label">按讚數</div></div>
+      <div class="stat"><span class="num">15,700+</span><div class="label">書籤收藏</div></div>
+    </div>
+  </div>
+  <div class="divider"></div>
+  <div class="right">
+    <!-- SVG: viral spread illustration -->
+    <svg width="340" height="320" viewBox="0 0 340 320" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#c8402f" stop-opacity="0.25"/>
+          <stop offset="100%" stop-color="#c8402f" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <!-- glow -->
+      <circle cx="170" cy="160" r="120" fill="url(#glow)"/>
+      <!-- center node -->
+      <circle cx="170" cy="160" r="28" fill="#c8402f"/>
+      <text x="170" y="155" text-anchor="middle" fill="white" font-family="Space Mono,monospace" font-size="9" font-weight="700">&lt;HTML&gt;</text>
+      <text x="170" y="168" text-anchor="middle" fill="rgba(255,255,255,0.8)" font-family="Space Mono,monospace" font-size="7">Thariq</text>
+      <!-- connecting lines -->
+      <line x1="170" y1="132" x2="170" y2="72" stroke="rgba(200,64,47,0.4)" stroke-width="1" stroke-dasharray="4,3"/>
+      <line x1="170" y1="188" x2="170" y2="248" stroke="rgba(200,64,47,0.4)" stroke-width="1" stroke-dasharray="4,3"/>
+      <line x1="142" y1="142" x2="96" y2="106" stroke="rgba(200,64,47,0.4)" stroke-width="1" stroke-dasharray="4,3"/>
+      <line x1="198" y1="142" x2="244" y2="106" stroke="rgba(200,64,47,0.4)" stroke-width="1" stroke-dasharray="4,3"/>
+      <line x1="142" y1="178" x2="96" y2="214" stroke="rgba(200,64,47,0.4)" stroke-width="1" stroke-dasharray="4,3"/>
+      <line x1="198" y1="178" x2="244" y2="214" stroke="rgba(200,64,47,0.4)" stroke-width="1" stroke-dasharray="4,3"/>
+      <!-- satellite nodes -->
+      <circle cx="170" cy="58" r="18" fill="none" stroke="var(--accent2)" stroke-width="1.5"/>
+      <text x="170" y="62" text-anchor="middle" fill="#2b5ba8" font-family="Space Mono,monospace" font-size="7">Hacker</text>
+      <text x="170" y="72" text-anchor="middle" fill="#2b5ba8" font-family="Space Mono,monospace" font-size="7">News</text>
+      <circle cx="170" cy="262" r="18" fill="none" stroke="var(--accent2)" stroke-width="1.5"/>
+      <text x="170" y="265" text-anchor="middle" fill="#2b5ba8" font-family="Space Mono,monospace" font-size="7">LinkedIn</text>
+      <text x="170" y="275" text-anchor="middle" fill="#2b5ba8" font-family="Space Mono,monospace" font-size="7">Medium</text>
+      <circle cx="82" cy="95" r="18" fill="none" stroke="rgba(212,160,23,0.8)" stroke-width="1.5"/>
+      <text x="82" y="98" text-anchor="middle" fill="#d4a017" font-family="Space Mono,monospace" font-size="7">X / Twitter</text>
+      <text x="82" y="108" text-anchor="middle" fill="#d4a017" font-family="Space Mono,monospace" font-size="7">Threads</text>
+      <circle cx="258" cy="95" r="18" fill="none" stroke="rgba(212,160,23,0.8)" stroke-width="1.5"/>
+      <text x="258" y="98" text-anchor="middle" fill="#d4a017" font-family="Space Mono,monospace" font-size="7">AI</text>
+      <text x="258" y="108" text-anchor="middle" fill="#d4a017" font-family="Space Mono,monospace" font-size="7">Companies</text>
+      <circle cx="82" cy="225" r="18" fill="none" stroke="rgba(107,159,255,0.7)" stroke-width="1.5"/>
+      <text x="82" y="228" text-anchor="middle" fill="#6b9fff" font-family="Space Mono,monospace" font-size="7">Tech</text>
+      <text x="82" y="238" text-anchor="middle" fill="#6b9fff" font-family="Space Mono,monospace" font-size="7">Blogs</text>
+      <circle cx="258" cy="225" r="18" fill="none" stroke="rgba(107,159,255,0.7)" stroke-width="1.5"/>
+      <text x="258" y="228" text-anchor="middle" fill="#6b9fff" font-family="Space Mono,monospace" font-size="7">Dev</text>
+      <text x="258" y="238" text-anchor="middle" fill="#6b9fff" font-family="Space Mono,monospace" font-size="7">Community</text>
+    </svg>
+  </div>
+</section>
+
+<!-- ══ SLIDE 3: Why Markdown ══ -->
+<section class="slide slide-why" data-slide="3">
+  <div style="width:100%;max-width:900px;">
+    <div class="tag">— 歷史背景</div>
+    <div class="slide-title" style="color:var(--paper);">為什麼過去<br>大家用 Markdown？</div>
+    <div class="body-text" style="color:rgba(200,190,176,0.7);margin-top:16px;max-width:600px;">
+      早期 LLM 的 context window 只有幾 K token，開發者必須節省每個字元。
+      Markdown 語法簡潔，而 HTML 標籤消耗大量 token，在小 context 時代不划算。
+    </div>
+
+    <!-- Context window growth visualization -->
+    <div style="margin-top:48px;position:relative;">
+      <div style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:0.15em;color:rgba(200,190,176,0.4);margin-bottom:16px;">CONTEXT WINDOW 演進</div>
+      <div style="display:flex;align-items:flex-end;gap:24px;height:200px;padding-bottom:40px;border-bottom:1px solid rgba(200,190,176,0.15);">
+        <!-- GPT-3 bar: 4K -->
+        <div style="display:flex;flex-direction:column;align-items:center;gap:8px;flex:1;">
+          <div style="font-family:'Space Mono',monospace;font-size:11px;color:#6b9fff;">4K</div>
+          <div style="width:100%;background:linear-gradient(180deg,#6b9fff,rgba(43,91,168,0.3));border-radius:3px 3px 0 0;" class="ctx-bar" data-height="8"></div>
+          <div style="font-family:'Space Mono',monospace;font-size:10px;color:rgba(200,190,176,0.4);text-align:center;">GPT-3<br>時代</div>
+        </div>
+        <!-- GPT-4 bar: 8K -->
+        <div style="display:flex;flex-direction:column;align-items:center;gap:8px;flex:1;">
+          <div style="font-family:'Space Mono',monospace;font-size:11px;color:#6b9fff;">8K</div>
+          <div style="width:100%;background:linear-gradient(180deg,#6b9fff,rgba(43,91,168,0.3));border-radius:3px 3px 0 0;" class="ctx-bar" data-height="15"></div>
+          <div style="font-family:'Space Mono',monospace;font-size:10px;color:rgba(200,190,176,0.4);text-align:center;">GPT-4<br>早期</div>
+        </div>
+        <!-- Claude 2 bar: 100K -->
+        <div style="display:flex;flex-direction:column;align-items:center;gap:8px;flex:1;">
+          <div style="font-family:'Space Mono',monospace;font-size:11px;color:#d4a017;">100K</div>
+          <div style="width:100%;background:linear-gradient(180deg,#d4a017,rgba(212,160,23,0.3));border-radius:3px 3px 0 0;" class="ctx-bar" data-height="60"></div>
+          <div style="font-family:'Space Mono',monospace;font-size:10px;color:rgba(200,190,176,0.4);text-align:center;">Claude 2</div>
+        </div>
+        <!-- Claude 3/4 bar: 1M -->
+        <div style="display:flex;flex-direction:column;align-items:center;gap:8px;flex:1;">
+          <div style="font-family:'Space Mono',monospace;font-size:11px;color:#c8402f;font-weight:700;">1M</div>
+          <div style="width:100%;background:linear-gradient(180deg,#c8402f,rgba(200,64,47,0.4));border-radius:3px 3px 0 0;" class="ctx-bar" data-height="140"></div>
+          <div style="font-family:'Space Mono',monospace;font-size:10px;color:rgba(200,190,176,0.4);text-align:center;">Claude<br>3.x / 4.x</div>
+        </div>
+      </div>
+      <div style="margin-top:20px;display:flex;align-items:center;gap:12px;">
+        <div style="width:20px;height:2px;background:var(--accent);"></div>
+        <span style="font-family:'Space Mono',monospace;font-size:12px;color:rgba(200,64,47,0.8);">進入百萬 token 時代，HTML 的 token 開銷不再是瓶頸</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ SLIDE 4: Advantages ══ -->
+<section class="slide slide-adv" data-slide="4">
+  <div class="tag">— HTML 的優勢</div>
+  <div class="slide-title">四大核心優勢</div>
+  <div class="adv-grid">
+    <!-- Card 1 -->
+    <div class="adv-card">
+      <div class="adv-num">01</div>
+      <div class="adv-icon">
+        <svg width="36" height="36" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
+          <rect x="2" y="14" width="6" height="18" rx="1" fill="rgba(200,64,47,0.3)"/>
+          <rect x="11" y="8" width="6" height="24" rx="1" fill="rgba(200,64,47,0.6)"/>
+          <rect x="20" y="4" width="6" height="28" rx="1" fill="#c8402f"/>
+          <rect x="29" y="10" width="5" height="22" rx="1" fill="rgba(200,64,47,0.5)"/>
+        </svg>
+      </div>
+      <div class="adv-title">資訊密度</div>
+      <div class="adv-desc">可嵌入 SVG 圖表、互動表格、錨點導覽，讓複雜資訊一頁呈現，而非線性文字堆砌</div>
+    </div>
+    <!-- Card 2 -->
+    <div class="adv-card">
+      <div class="adv-num">02</div>
+      <div class="adv-icon">
+        <svg width="36" height="36" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="10" cy="10" r="6" fill="rgba(200,64,47,0.8)"/>
+          <circle cx="26" cy="10" r="6" fill="rgba(43,91,168,0.6)"/>
+          <circle cx="18" cy="24" r="6" fill="rgba(212,160,23,0.7)"/>
+          <circle cx="18" cy="16" r="4" fill="rgba(200,64,47,0.3)" opacity="0.6"/>
+        </svg>
+      </div>
+      <div class="adv-title">視覺豐富度</div>
+      <div class="adv-desc">CSS 排版 + base64 內嵌圖片 + 空間佈局，視覺設計遠超 Markdown 的純文字限制</div>
+    </div>
+    <!-- Card 3 -->
+    <div class="adv-card">
+      <div class="adv-num">03</div>
+      <div class="adv-icon">
+        <svg width="36" height="36" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
+          <polygon points="6,30 18,4 30,30" fill="none" stroke="#c8402f" stroke-width="2"/>
+          <circle cx="18" cy="16" r="3" fill="#c8402f"/>
+          <line x1="18" y1="19" x2="18" y2="26" stroke="#c8402f" stroke-width="2"/>
+          <circle cx="18" cy="27" r="2" fill="#c8402f"/>
+        </svg>
+      </div>
+      <div class="adv-title">互動能力</div>
+      <div class="adv-desc">JavaScript DOM 操作、可執行程式碼區塊、按鈕與篩選功能，Markdown 完全無法實現</div>
+    </div>
+    <!-- Card 4 -->
+    <div class="adv-card">
+      <div class="adv-num">04</div>
+      <div class="adv-icon">
+        <svg width="36" height="36" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="7" cy="18" r="5" fill="none" stroke="#c8402f" stroke-width="1.5"/>
+          <circle cx="29" cy="9" r="5" fill="none" stroke="#c8402f" stroke-width="1.5"/>
+          <circle cx="29" cy="27" r="5" fill="none" stroke="#c8402f" stroke-width="1.5"/>
+          <line x1="12" y1="16" x2="24" y2="11" stroke="rgba(200,64,47,0.5)" stroke-width="1.5"/>
+          <line x1="12" y1="20" x2="24" y2="25" stroke="rgba(200,64,47,0.5)" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <div class="adv-title">分享便利性</div>
+      <div class="adv-desc">單一 .html 檔案可在任何瀏覽器完整開啟，無需 Markdown 渲染器或特定閱讀器</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ SLIDE 5: Comparison ══ -->
+<section class="slide slide-compare" data-slide="5">
+  <div class="tag" style="color:var(--gold);">— 全面對比</div>
+  <div class="slide-title" style="color:var(--paper);">HTML vs Markdown</div>
+  <div class="vs-layout">
+    <div class="vs-col html-col">
+      <div class="vs-header red">⬡ HTML</div>
+      <div class="vs-item"><span class="vs-dot">✦</span> SVG、Canvas、互動圖表</div>
+      <div class="vs-item"><span class="vs-dot">✦</span> CSS 自訂排版與樣式</div>
+      <div class="vs-item"><span class="vs-dot">✦</span> JavaScript 互動邏輯</div>
+      <div class="vs-item"><span class="vs-dot">✦</span> base64 內嵌圖片</div>
+      <div class="vs-item"><span class="vs-dot">✦</span> 長文件導覽錨點</div>
+      <div class="vs-item"><span class="vs-dot">✦</span> 豐富的跨平台渲染</div>
+      <div class="vs-item"><span class="vs-dot">✦</span> 可執行的程式碼沙盒</div>
+    </div>
+    <div class="vs-divider"><div class="vs-badge">VS</div></div>
+    <div class="vs-col md-col">
+      <div class="vs-header blue">⬡ Markdown</div>
+      <div class="vs-item"><span class="vs-dot blue-dot">✦</span> 語法簡潔易讀易寫</div>
+      <div class="vs-item"><span class="vs-dot blue-dot">✦</span> 任意文字編輯器可開啟</div>
+      <div class="vs-item"><span class="vs-dot blue-dot">✦</span> Git diff 清晰可讀</div>
+      <div class="vs-item"><span class="vs-dot blue-dot">✦</span> Token 消耗較少</div>
+      <div class="vs-item"><span class="vs-dot blue-dot">✦</span> 版本控制友善</div>
+      <div class="vs-item"><span class="vs-dot blue-dot">✦</span> 可直接轉換多種格式</div>
+      <div class="vs-item"><span class="vs-dot blue-dot">✦</span> 適合資料處理管線</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ SLIDE 6: Quote ══ -->
+<section class="slide slide-quote" data-slide="6">
+  <div class="quote-mark">"</div>
+  <!-- SVG decorative element -->
+  <svg width="120" height="120" viewBox="0 0 120 120" style="position:absolute;bottom:40px;right:60px;opacity:0.15;" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="60" cy="60" r="55" fill="none" stroke="white" stroke-width="1"/>
+    <circle cx="60" cy="60" r="35" fill="none" stroke="white" stroke-width="1"/>
+    <line x1="60" y1="5" x2="60" y2="115" stroke="white" stroke-width="0.5"/>
+    <line x1="5" y1="60" x2="115" y2="60" stroke="white" stroke-width="0.5"/>
+  </svg>
+  <div class="quote-text">
+    不要讓 Markdown 成為<br>沒有人閱讀 AI 輸出的原因。<br>
+    HTML 才是 AI Agent 的<br>最佳輸出格式。
+  </div>
+  <div class="quote-author">— Thariq Shihipar，Anthropic Claude Code 工程師</div>
+</section>
+
+<!-- ══ SLIDE 7: When to Use ══ -->
+<section class="slide slide-when" data-slide="7">
+  <div class="tag">— 實務建議</div>
+  <div class="slide-title">何時選擇哪種格式？</div>
+
+  <!-- SVG decision diagram -->
+  <svg width="680" height="80" viewBox="0 0 680 80" style="margin:32px 0 16px;" xmlns="http://www.w3.org/2000/svg">
+    <rect x="0" y="20" width="300" height="40" rx="4" fill="rgba(200,64,47,0.08)" stroke="rgba(200,64,47,0.4)" stroke-width="1.5"/>
+    <text x="150" y="45" text-anchor="middle" fill="#c8402f" font-family="Space Mono,monospace" font-size="13" font-weight="700">展示端輸出 → HTML</text>
+    <line x1="300" y1="40" x2="380" y2="40" stroke="rgba(107,107,107,0.3)" stroke-width="1" stroke-dasharray="4,3"/>
+    <rect x="380" y="20" width="300" height="40" rx="4" fill="rgba(43,91,168,0.08)" stroke="rgba(43,91,168,0.4)" stroke-width="1.5"/>
+    <text x="530" y="45" text-anchor="middle" fill="#2b5ba8" font-family="Space Mono,monospace" font-size="13" font-weight="700">資料管線 → Markdown</text>
+  </svg>
+
+  <div class="when-grid">
+    <div class="when-col">
+      <div class="when-head html">選 HTML 的時機</div>
+      <div class="when-item"><div class="wi-dot red"></div>AI Agent 最終輸出報告</div>
+      <div class="when-item"><div class="wi-dot red"></div>需要視覺化或圖表</div>
+      <div class="when-item"><div class="wi-dot red"></div>分享給非技術人員</div>
+      <div class="when-item"><div class="wi-dot red"></div>互動式儀表板</div>
+      <div class="when-item"><div class="wi-dot red"></div>長篇多章節文件</div>
+    </div>
+    <div class="when-col">
+      <div class="when-head md">選 Markdown 的時機</div>
+      <div class="when-item"><div class="wi-dot blue"></div>需要 Git 版本控制</div>
+      <div class="when-item"><div class="wi-dot blue"></div>RAG 資料處理管線</div>
+      <div class="when-item"><div class="wi-dot blue"></div>開發者協作文件</div>
+      <div class="when-item"><div class="wi-dot blue"></div>需要多格式轉換</div>
+      <div class="when-item"><div class="wi-dot blue"></div>純文字編輯場景</div>
+    </div>
+  </div>
+  <div style="margin-top:32px;font-family:'Space Mono',monospace;font-size:12px;color:var(--mid);text-align:center;letter-spacing:0.1em;">
+    ✦ HTML 與 Markdown 並非零和競爭，適用場景不同 ✦
+  </div>
+</section>
+
+<!-- ══ SLIDE 8: Conclusion ══ -->
+<section class="slide slide-end" data-slide="8">
+  <!-- SVG: large decorative HTML tag -->
+  <svg width="400" height="200" viewBox="0 0 400 200" style="position:absolute;top:40px;left:50%;transform:translateX(-50%);opacity:0.04;" xmlns="http://www.w3.org/2000/svg">
+    <text x="200" y="160" text-anchor="middle" fill="white" font-family="Space Mono,monospace" font-size="120" font-weight="700">&lt;/&gt;</text>
+  </svg>
+  <div class="end-line"></div>
+  <div class="end-title">大 Context 時代<br><em>HTML 已就位</em></div>
+  <div class="end-sub">The Unreasonable Effectiveness of HTML</div>
+  <div style="margin-top:48px;display:flex;gap:32px;flex-wrap:wrap;justify-content:center;">
+    <div style="text-align:center;">
+      <div style="font-family:'Space Mono',monospace;font-size:28px;font-weight:700;color:var(--accent);">200K–1M</div>
+      <div style="font-size:12px;color:rgba(200,190,176,0.4);margin-top:4px;">Claude 4.x Context</div>
+    </div>
+    <div style="width:1px;background:rgba(200,190,176,0.1);"></div>
+    <div style="text-align:center;">
+      <div style="font-family:'Space Mono',monospace;font-size:28px;font-weight:700;color:var(--gold);">2026.5</div>
+      <div style="font-size:12px;color:rgba(200,190,176,0.4);margin-top:4px;">討論引爆時間點</div>
+    </div>
+    <div style="width:1px;background:rgba(200,190,176,0.1);"></div>
+    <div style="text-align:center;">
+      <div style="font-family:'Space Mono',monospace;font-size:28px;font-weight:700;color:#6b9fff;">∞</div>
+      <div style="font-size:12px;color:rgba(200,190,176,0.4);margin-top:4px;">HTML 的表達可能性</div>
+    </div>
+  </div>
+  <div class="end-credit">整理自 ABMedia｜Grenade｜Tenten｜電腦王阿達｜Epsilla Blog</div>
+</section>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const nav = document.getElementById('nav');
+
+  // Build nav dots
+  slides.forEach((slide, i) => {
+    const dot = document.createElement('div');
+    dot.className = 'nav-dot' + (i === 0 ? ' active' : '');
+    dot.addEventListener('click', () => slide.scrollIntoView({ behavior: 'smooth' }));
+    nav.appendChild(dot);
+  });
+
+  // Update active dot on scroll
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const idx = [...slides].indexOf(entry.target);
+        document.querySelectorAll('.nav-dot').forEach((d, i) => {
+          d.classList.toggle('active', i === idx);
+        });
+      }
+    });
+  }, { threshold: 0.5 });
+  slides.forEach(s => observer.observe(s));
+
+  // Animate context bars on slide 3 enter
+  const slide3 = document.querySelector('.slide-why');
+  const barObserver = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting) {
+      document.querySelectorAll('.ctx-bar').forEach(bar => {
+        const h = bar.dataset.height;
+        bar.style.transition = 'height 0.8s cubic-bezier(0.16,1,0.3,1)';
+        bar.style.height = h + 'px';
+      });
+    }
+  }, { threshold: 0.3 });
+  barObserver.observe(slide3);
+
+  // Init bar heights to 0
+  document.querySelectorAll('.ctx-bar').forEach(bar => {
+    bar.style.height = '0px';
+  });
+</script>
+</body>
+</html>

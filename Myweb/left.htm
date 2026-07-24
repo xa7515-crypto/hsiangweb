@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>left</title>
+<base target="detail">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background-color: #f5f0eb;
+  font-family: '新細明體', '細明體', PMingLiU, serif;
+  font-size: 13px;
+  width: 160px;
+  overflow-x: hidden;
+}
+
+/* 首頁按鈕 */
+.home-link {
+  display: block;
+  padding: 6px 8px;
+  background-color: #eee8e0;
+  color: #244918;
+  font-size: 14px;
+  font-weight: bold;
+  text-decoration: none;
+  border-bottom: 1px solid #c8b89a;
+}
+.home-link:hover { color: #FF0000; text-decoration: underline; background-color: #e0d8cc; }
+
+/* 大分類標題 */
+.category {
+  display: flex;
+  align-items: center;
+  padding: 5px 8px;
+  background-color: #ddd5c8;
+  color: #244918;
+  font-size: 13px;
+  font-weight: bold;
+  cursor: pointer;
+  border-bottom: 1px solid #c0b09a;
+  user-select: none;
+}
+.category:hover { background-color: #cfc5b8; }
+.category .arrow {
+  margin-left: auto;
+  font-size: 10px;
+  transition: transform 0.2s;
+}
+.category.open .arrow { transform: rotate(90deg); }
+
+/* 子項目清單 */
+.submenu {
+  display: none;
+  background-color: #f0ebe4;
+  border-bottom: 1px solid #c8b89a;
+}
+.submenu.open { display: block; }
+
+.submenu a {
+  display: block;
+  padding: 4px 8px 4px 20px;
+  color: #333;
+  text-decoration: none;
+  font-size: 12px;
+  border-bottom: 1px dotted #d0c8bc;
+}
+.submenu a:hover { color: #CC00CC; background-color: #e8e0d8; }
+.submenu a:last-child { border-bottom: none; }
+</style>
+</head>
+
+<body>
+
+<a class="home-link" href="right.htm" target="detail">🏠 首頁</a>
+
+<!-- 專業背景 -->
+<div class="category" onclick="toggle(this)">
+  專業背景 <span class="arrow">▶</span>
+</div>
+<div class="submenu">
+  <a href="a1.htm">基本資料</a>
+  <a href="a2.htm">教學理念</a>
+  <a href="a3.htm">歷年獎勵</a>
+</div>
+
+<!-- 課程設計 -->
+<div class="category" onclick="toggle(this)">
+  課程設計 <span class="arrow">▶</span>
+</div>
+<div class="submenu">
+  <a href="b1.htm">課程計畫</a>
+  <a href="b2.htm">教學設計</a>
+  <a href="b3.htm">社區教學</a>
+  <a href="b4.htm">補充教材</a>
+  <a href="b5.htm">補救教學</a>
+  <a href="b6.htm">教學省思</a>
+  <a href="b7.htm">主題教學成效檢核</a>
+</div>
+
+<!-- 學習評量 -->
+<div class="category" onclick="toggle(this)">
+  學習評量 <span class="arrow">▶</span>
+</div>
+<div class="submenu">
+  <a href="c1.htm">評量計畫</a>
+  <a href="c2.htm">評量結果</a>
+  <a href="c3.htm">學生作品</a>
+</div>
+
+<!-- 班級經營 -->
+<div class="category" onclick="toggle(this)">
+  班級經營 <span class="arrow">▶</span>
+</div>
+<div class="submenu">
+  <a href="d1.htm">班級經營計畫</a>
+  <a href="d2.htm">班級自治組織</a>
+  <a href="d3.htm">學生輔導記錄</a>
+  <a href="d4.htm">情境佈置</a>
+  <a href="d5.htm">親師聯繫</a>
+  <a href="d6.htm">資源運用</a>
+  <a href="d7.htm">個案研究</a>
+</div>
+
+<!-- 研究進修 -->
+<div class="category" onclick="toggle(this)">
+  研究進修 <span class="arrow">▶</span>
+</div>
+<div class="submenu">
+  <a href="e1.htm">創意教學開發</a>
+  <a href="e2.htm">教師專業社群</a>
+  <a href="e3.htm">研習紀錄</a>
+  <a href="e5.htm">班級網頁</a>
+  <a href="e6.htm">參與專案</a>
+  <a href="e7.htm">專業成長</a>
+  <a href="e8.htm">研習心得</a>
+  <a href="e9.htm">教學能力檢定</a>
+</div>
+
+<!-- 自編教材 -->
+<div class="category" onclick="toggle(this)">
+  自編教材 <span class="arrow">▶</span>
+</div>
+<div class="submenu">
+  <a href="f1.htm">學生主題社群</a>
+  <a href="f2.htm">數位教材</a>
+  <a href="f4.htm">比賽成果</a>
+</div>
+
+<script>
+function toggle(el) {
+  el.classList.toggle('open');
+  var sub = el.nextElementSibling;
+  if (sub) sub.classList.toggle('open');
+}
+</script>
+
+</body>
+</html>

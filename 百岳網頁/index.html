@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>台灣百岳圖鑑</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif;
+  background: #1a1a2e;
+  color: #eee;
+  min-height: 100vh;
+}
+header {
+  background: linear-gradient(135deg, #16213e, #0f3460);
+  padding: 12px 20px;
+  text-align: center;
+  border-bottom: 3px solid #e94560;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 20px rgba(0,0,0,.5);
+}
+header h1 {
+  font-size: clamp(1.1rem, 4vw, 1.8rem);
+  letter-spacing: 3px;
+  color: #fff;
+}
+header h1 small {
+  font-size: .55em;
+  color: #e94560;
+  letter-spacing: 1px;
+  margin-left: 8px;
+}
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: #0f3460;
+  border-bottom: 1px solid #1a1a3e;
+}
+.toolbar button, .toolbar input {
+  font-size: clamp(.8rem, 2vw, 1rem);
+  padding: 6px 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  background: #e94560;
+  color: #fff;
+  transition: .2s;
+  font-family: inherit;
+}
+.toolbar button:hover { background: #c73650; transform: scale(1.04); }
+.toolbar button:active { transform: scale(.96); }
+.toolbar button.secondary { background: #16213e; border: 1px solid #e94560; }
+.toolbar button.secondary:hover { background: #1f2f55; }
+.toolbar label {
+  color: #ccc;
+  font-size: clamp(.8rem, 1.8vw, .95rem);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.toolbar input[type=number] {
+  width: 60px;
+  text-align: center;
+  background: #16213e;
+  color: #fff;
+  border: 1px solid #555;
+  padding: 5px 4px;
+  border-radius: 4px;
+}
+.toolbar input[type=number]:focus { outline: 2px solid #e94560; }
+.toolbar .page-info {
+  color: #aaa;
+  font-size: clamp(.75rem, 1.6vw, .9rem);
+  margin: 0 4px;
+}
+.toolbar .spacer { flex: 1; min-width: 20px; }
+
+/* --- View Mode --- */
+.view-container {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 12px;
+}
+/* Single-page mode */
+#single-view {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+}
+#single-view.active { display: flex; }
+#single-view img {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 6px 30px rgba(0,0,0,.6);
+  background: #111;
+  cursor: pointer;
+  transition: opacity .25s;
+}
+.single-nav {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 14px;
+  width: 100%;
+}
+.single-nav button {
+  min-width: 100px;
+  padding: 10px 24px;
+  font-size: 1rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  background: #e94560;
+  color: #fff;
+  font-family: inherit;
+  transition: .2s;
+}
+.single-nav button:hover { background: #c73650; }
+.single-nav button:disabled { opacity: .4; cursor: default; transform: none; }
+
+/* Grid mode */
+#grid-view {
+  display: none;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+}
+#grid-view.active {
+  display: grid;
+}
+#grid-view .thumb {
+  cursor: pointer;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 2px solid transparent;
+  transition: .2s;
+  background: #111;
+}
+#grid-view .thumb:hover {
+  border-color: #e94560;
+  transform: scale(1.03);
+}
+#grid-view .thumb img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+#grid-view .thumb .page-label {
+  text-align: center;
+  font-size: .75rem;
+  color: #aaa;
+  padding: 3px 0 5px;
+  background: #0f3460;
+}
+
+/* Scroll mode */
+#scroll-view {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+#scroll-view.active { display: flex; }
+#scroll-view img {
+  width: 100%;
+  max-width: 800px;
+  height: auto;
+  border-radius: 6px;
+  box-shadow: 0 4px 20px rgba(0,0,0,.5);
+  background: #111;
+}
+#scroll-view .scroll-label {
+  text-align: center;
+  color: #888;
+  font-size: .8rem;
+  margin-top: -8px;
+}
+
+/* Fullscreen overlay */
+#fullscreen-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0,0,0,.95);
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+}
+#fullscreen-overlay.active { display: flex; }
+#fullscreen-overlay img {
+  max-width: 98vw;
+  max-height: 98vh;
+  object-fit: contain;
+  border-radius: 4px;
+}
+#fullscreen-overlay .fs-close {
+  position: absolute;
+  top: 16px;
+  right: 24px;
+  font-size: 2.5rem;
+  color: #fff;
+  cursor: pointer;
+  opacity: .7;
+  transition: .2s;
+  line-height: 1;
+}
+#fullscreen-overlay .fs-close:hover { opacity: 1; }
+
+@media (max-width: 600px) {
+  #grid-view { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 6px; }
+  .toolbar { gap: 5px; padding: 8px 8px; }
+  .toolbar button, .toolbar input { padding: 5px 10px; }
+  .single-nav button { min-width: 70px; padding: 8px 14px; }
+}
+@media (max-width: 400px) {
+  #grid-view { grid-template-columns: repeat(auto-fill, minmax(75px, 1fr)); gap: 4px; }
+  .view-container { padding: 6px; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>台灣百岳圖鑑 <small>083</small></h1>
+</header>
+
+<div class="toolbar">
+  <button onclick="switchMode('single')" id="btn-single" class="secondary">📖 單頁</button>
+  <button onclick="switchMode('grid')" id="btn-grid">📇 縮圖</button>
+  <button onclick="switchMode('scroll')" id="btn-scroll" class="secondary">📜 捲動</button>
+  <span class="spacer"></span>
+  <label>
+    第
+    <input type="number" id="goto-input" min="1" max="112" value="1">
+    頁
+  </label>
+  <button onclick="goToPage()">跳至</button>
+  <span class="page-info" id="page-info">1 / 112</span>
+</div>
+
+<div class="view-container">
+
+  <div id="single-view" class="active">
+    <img id="single-img" src="page_001.png" alt="第1頁" onclick="fullscreen(this.src)">
+    <div class="single-nav">
+      <button id="prev-btn" onclick="prevPage()">◀ 上一頁</button>
+      <button id="next-btn" onclick="nextPage()">下一頁 ▶</button>
+    </div>
+  </div>
+
+  <div id="scroll-view">
+  </div>
+
+  <div id="grid-view">
+  </div>
+
+</div>
+
+<div id="fullscreen-overlay" onclick="closeFullscreen(event)">
+  <span class="fs-close">&times;</span>
+  <img id="fs-img" src="" alt="fullscreen">
+</div>
+
+<script>
+const TOTAL = 112;
+let currentPage = 1;
+let currentMode = 'single';
+
+function pad(n) { return String(n).padStart(3, '0'); }
+
+function switchMode(mode) {
+  currentMode = mode;
+  document.getElementById('single-view').classList.toggle('active', mode === 'single');
+  document.getElementById('scroll-view').classList.toggle('active', mode === 'scroll');
+  document.getElementById('grid-view').classList.toggle('active', mode === 'grid');
+  document.getElementById('btn-single').className = mode==='single' ? '' : 'secondary';
+  document.getElementById('btn-grid').className = mode==='grid' ? '' : 'secondary';
+  document.getElementById('btn-scroll').className = mode==='scroll' ? '' : 'secondary';
+}
+
+function showPage(n) {
+  currentPage = Math.max(1, Math.min(TOTAL, n));
+  const img = document.getElementById('single-img');
+  img.src = `page_${pad(currentPage)}.png`;
+  img.alt = `第${currentPage}頁`;
+  document.getElementById('page-info').textContent = `${currentPage} / ${TOTAL}`;
+  document.getElementById('goto-input').value = currentPage;
+  document.getElementById('prev-btn').disabled = currentPage === 1;
+  document.getElementById('next-btn').disabled = currentPage === TOTAL;
+}
+
+function nextPage() { showPage(currentPage + 1); }
+function prevPage() { showPage(currentPage - 1); }
+
+function goToPage() {
+  const v = parseInt(document.getElementById('goto-input').value, 10);
+  if (v >= 1 && v <= TOTAL) {
+    if (currentMode === 'single') {
+      showPage(v);
+    } else {
+      document.getElementById(`thumb-${v}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }
+}
+
+function fullscreen(src) {
+  document.getElementById('fs-img').src = src;
+  document.getElementById('fullscreen-overlay').classList.add('active');
+}
+function closeFullscreen(e) {
+  if (e.target === e.currentTarget || e.target.classList.contains('fs-close')) {
+    document.getElementById('fullscreen-overlay').classList.remove('active');
+  }
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', e => {
+  if (document.getElementById('fullscreen-overlay').classList.contains('active')) {
+    if (e.key === 'Escape' || e.key === ' ') {
+      closeFullscreen(e); e.preventDefault();
+      return;
+    }
+  }
+  if (currentMode === 'single') {
+    if (e.key === 'ArrowRight' || e.key === ' ') { nextPage(); e.preventDefault(); }
+    if (e.key === 'ArrowLeft') { prevPage(); e.preventDefault(); }
+  }
+  if (e.key === 'g' && e.ctrlKey) { e.preventDefault(); document.getElementById('goto-input').focus(); }
+});
+
+// Build grid
+(function buildGrid() {
+  const grid = document.getElementById('grid-view');
+  for (let i = 1; i <= TOTAL; i++) {
+    const d = document.createElement('div');
+    d.className = 'thumb';
+    d.id = `thumb-${i}`;
+    d.innerHTML = `<img src="page_${pad(i)}.png" alt="第${i}頁" loading="lazy">
+      <div class="page-label">第 ${i} 頁</div>`;
+    d.addEventListener('click', () => { showPage(i); switchMode('single'); });
+    grid.appendChild(d);
+  }
+})();
+
+// Build scroll
+(function buildScroll() {
+  const sv = document.getElementById('scroll-view');
+  for (let i = 1; i <= TOTAL; i++) {
+    const img = document.createElement('img');
+    img.src = `page_${pad(i)}.png`;
+    img.alt = `第${i}頁`;
+    img.loading = 'lazy';
+    img.addEventListener('click', () => fullscreen(img.src));
+    sv.appendChild(img);
+    const lbl = document.createElement('div');
+    lbl.className = 'scroll-label';
+    lbl.textContent = `— 第 ${i} 頁 —`;
+    sv.appendChild(lbl);
+  }
+})();
+
+showPage(1);
+</script>
+</body>
+</html>
