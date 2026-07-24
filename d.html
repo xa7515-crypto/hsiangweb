@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gemini Canvas｜讓碎片資訊轉化專業產出</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#060b18;
+    --bg-2:#0a1226;
+    --surface:#0e1a33;
+    --surface-2:#101f3d;
+    --line:rgba(120,170,255,0.16);
+    --cyan:#22d3ee;
+    --blue:#3b82f6;
+    --purple:#a78bfa;
+    --amber:#fbbf24;
+    --green:#34d399;
+    --pink:#f472b6;
+    --text:#eaf2ff;
+    --muted:#8fa3c7;
+    --font-h:"Orbitron","Noto Sans TC",sans-serif;
+    --font-b:"Noto Sans TC",sans-serif;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--font-b);
+    line-height:1.75;
+    overflow-x:hidden;
+  }
+
+  /* ---------- background circuit texture ---------- */
+  body::before{
+    content:"";
+    position:fixed;
+    inset:0;
+    z-index:0;
+    pointer-events:none;
+    background:
+      radial-gradient(circle at 15% 10%, rgba(34,211,238,0.10), transparent 35%),
+      radial-gradient(circle at 85% 25%, rgba(167,139,250,0.09), transparent 40%),
+      radial-gradient(circle at 30% 85%, rgba(59,130,246,0.10), transparent 40%);
+  }
+
+  a{color:inherit;}
+
+  /* ---------- top progress bar ---------- */
+  #progress{
+    position:fixed;
+    top:0; left:0;
+    height:3px;
+    width:0%;
+    background:linear-gradient(90deg,var(--cyan),var(--purple));
+    z-index:999;
+    box-shadow:0 0 12px rgba(34,211,238,0.7);
+    transition:width 0.1s linear;
+  }
+
+  /* ---------- nav ---------- */
+  nav{
+    position:fixed;
+    top:0; left:0; right:0;
+    z-index:200;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:14px 28px;
+    backdrop-filter:blur(14px);
+    background:rgba(6,11,24,0.55);
+    border-bottom:1px solid var(--line);
+  }
+  .brand{
+    font-family:var(--font-h);
+    font-weight:700;
+    font-size:15px;
+    letter-spacing:0.06em;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    white-space:nowrap;
+  }
+  .brand .dot{
+    width:8px;height:8px;border-radius:50%;
+    background:var(--cyan);
+    box-shadow:0 0 8px var(--cyan), 0 0 16px var(--cyan);
+  }
+  .navlinks{
+    display:flex;
+    gap:22px;
+    font-size:13px;
+    color:var(--muted);
+    font-weight:500;
+  }
+  .navlinks a{
+    text-decoration:none;
+    padding:6px 2px;
+    border-bottom:1px solid transparent;
+    transition:color .2s, border-color .2s;
+  }
+  .navlinks a:hover, .navlinks a.active{
+    color:var(--cyan);
+    border-color:var(--cyan);
+  }
+  @media (max-width:800px){
+    .navlinks{display:none;}
+  }
+
+  section{
+    position:relative;
+    z-index:1;
+    padding:120px 24px 100px;
+    max-width:1160px;
+    margin:0 auto;
+  }
+
+  .eyebrow{
+    font-family:var(--font-h);
+    font-size:12px;
+    letter-spacing:0.32em;
+    text-transform:uppercase;
+    color:var(--cyan);
+    margin-bottom:16px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .eyebrow::before{
+    content:"";
+    width:26px; height:1px;
+    background:var(--cyan);
+  }
+
+  h2.title{
+    font-family:var(--font-h);
+    font-weight:700;
+    font-size:clamp(26px,3.4vw,40px);
+    letter-spacing:0.02em;
+    margin-bottom:14px;
+    background:linear-gradient(90deg,#fff,#bcd4ff 70%);
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+  .sub{
+    color:var(--muted);
+    max-width:680px;
+    font-size:15.5px;
+    margin-bottom:48px;
+  }
+
+  /* reveal-on-scroll */
+  .reveal{
+    opacity:0;
+    transform:translateY(28px);
+    transition:opacity .7s ease, transform .7s ease;
+  }
+  .reveal.in{
+    opacity:1;
+    transform:translateY(0);
+  }
+
+  /* ============ HERO ============ */
+  #hero{
+    padding:0;
+    max-width:100%;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    position:relative;
+  }
+  .hero-frame{
+    width:min(1180px, 94vw);
+    margin-top:90px;
+    border-radius:18px;
+    overflow:hidden;
+    border:1px solid var(--line);
+    box-shadow:0 0 0 1px rgba(34,211,238,0.06), 0 40px 100px -30px rgba(34,211,238,0.35), 0 0 80px -20px rgba(167,139,250,0.25);
+    position:relative;
+  }
+  .hero-frame img{
+    display:block;
+    width:100%;
+    height:auto;
+  }
+  .hero-frame::after{
+    content:"";
+    position:absolute; inset:0;
+    box-shadow:inset 0 0 60px rgba(6,11,24,0.5);
+    pointer-events:none;
+  }
+  .scroll-cue{
+    margin-top:36px;
+    font-size:12px;
+    letter-spacing:0.3em;
+    color:var(--muted);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:10px;
+    font-family:var(--font-h);
+  }
+  .scroll-cue .chev{
+    width:14px;height:14px;
+    border-right:2px solid var(--cyan);
+    border-bottom:2px solid var(--cyan);
+    transform:rotate(45deg);
+    animation:bob 1.8s infinite;
+    opacity:.85;
+  }
+  @keyframes bob{
+    0%,100%{transform:rotate(45deg) translate(0,0);}
+    50%{transform:rotate(45deg) translate(6px,6px);}
+  }
+
+  /* ============ 4 core cards ============ */
+  .grid4{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:18px;
+  }
+  @media (max-width:980px){ .grid4{grid-template-columns:repeat(2,1fr);} }
+  @media (max-width:560px){ .grid4{grid-template-columns:1fr;} }
+
+  .card{
+    background:linear-gradient(160deg,var(--surface),var(--surface-2));
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:26px 22px;
+    position:relative;
+    overflow:hidden;
+    transition:transform .3s ease, border-color .3s ease, box-shadow .3s ease;
+  }
+  .card:hover{
+    transform:translateY(-6px);
+    border-color:rgba(34,211,238,0.5);
+    box-shadow:0 18px 40px -18px rgba(34,211,238,0.35);
+  }
+  .card .num{
+    font-family:var(--font-h);
+    font-size:30px;
+    font-weight:900;
+    color:transparent;
+    -webkit-text-stroke:1.4px rgba(34,211,238,0.55);
+    margin-bottom:14px;
+  }
+  .card h3{
+    font-size:17px;
+    font-weight:700;
+    margin-bottom:4px;
+  }
+  .card .en{
+    font-family:var(--font-h);
+    font-size:11px;
+    color:var(--cyan);
+    letter-spacing:0.08em;
+    margin-bottom:14px;
+    display:block;
+  }
+  .card ul{list-style:none;}
+  .card li{
+    font-size:13.5px;
+    color:var(--muted);
+    margin-bottom:6px;
+    padding-left:14px;
+    position:relative;
+  }
+  .card li::before{
+    content:"";
+    position:absolute; left:0; top:8px;
+    width:5px;height:5px;
+    border-radius:50%;
+    background:var(--cyan);
+  }
+
+  .core-note{
+    margin-top:28px;
+    text-align:center;
+    font-family:var(--font-h);
+    font-size:13px;
+    letter-spacing:0.1em;
+    color:var(--muted);
+  }
+  .core-note b{color:var(--cyan); font-weight:700;}
+
+  /* ============ divider band ============ */
+  .band{
+    max-width:100%;
+    padding:70px 24px;
+    text-align:center;
+    background:linear-gradient(180deg, transparent, rgba(34,211,238,0.05), transparent);
+    border-top:1px solid var(--line);
+    border-bottom:1px solid var(--line);
+    position:relative;
+  }
+  .band h2{
+    font-family:var(--font-h);
+    font-size:clamp(22px,3vw,32px);
+    letter-spacing:0.05em;
+    color:#fff;
+  }
+  .band .tag{
+    margin-top:10px;
+    font-size:13px;
+    color:var(--muted);
+    letter-spacing:0.08em;
+  }
+
+  /* ============ workflow steps (4-step) ============ */
+  .steps{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:16px;
+    position:relative;
+  }
+  @media (max-width:980px){ .steps{grid-template-columns:repeat(2,1fr);} }
+  @media (max-width:560px){ .steps{grid-template-columns:1fr;} }
+  .step{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:22px 20px;
+  }
+  .step-head{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:14px;
+  }
+  .step-badge{
+    width:30px;height:30px;
+    border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--font-h);
+    font-weight:700;
+    font-size:14px;
+    flex-shrink:0;
+    border:1px solid currentColor;
+  }
+  .step h4{font-size:15px; font-weight:700;}
+  .step ul{list-style:none;}
+  .step li{
+    font-size:13px;
+    color:var(--muted);
+    margin-bottom:6px;
+    padding-left:13px;
+    position:relative;
+  }
+  .step li::before{
+    content:"–";
+    position:absolute; left:0; color:var(--muted);
+  }
+
+  /* ============ two-col content w/ image-ish visual ============ */
+  .two-col{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:30px;
+    align-items:start;
+  }
+  @media (max-width:860px){ .two-col{grid-template-columns:1fr;} }
+
+  .panel{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:28px;
+  }
+  .panel h3{
+    font-size:16px;
+    margin-bottom:16px;
+    color:var(--cyan);
+    font-weight:700;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .chips{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-top:14px;
+  }
+  .chip{
+    font-size:12px;
+    padding:6px 12px;
+    border-radius:20px;
+    border:1px solid var(--line);
+    color:var(--muted);
+    background:rgba(255,255,255,0.02);
+  }
+  .prompt-box{
+    background:rgba(6,11,24,0.7);
+    border:1px solid rgba(34,211,238,0.25);
+    border-radius:10px;
+    padding:16px 18px;
+    font-size:12.5px;
+    color:#b9c9e8;
+    font-family:ui-monospace,SFMono-Regular,Consolas,monospace;
+    line-height:1.9;
+    margin-top:14px;
+    white-space:pre-wrap;
+  }
+  .mini-list{list-style:none; margin-top:6px;}
+  .mini-list li{
+    font-size:13.5px;
+    color:var(--muted);
+    padding:6px 0;
+    border-bottom:1px dashed var(--line);
+  }
+  .mini-list li:last-child{border-bottom:none;}
+  .mini-list b{color:var(--text); font-weight:600;}
+
+  /* ============ timeline (project showcase) ============ */
+  .timeline{
+    position:relative;
+    padding-left:26px;
+    border-left:2px solid rgba(34,211,238,0.3);
+  }
+  .tl-item{
+    position:relative;
+    margin-bottom:34px;
+    padding-left:6px;
+  }
+  .tl-item:last-child{margin-bottom:0;}
+  .tl-item::before{
+    content:"";
+    position:absolute;
+    left:-33.5px; top:2px;
+    width:14px; height:14px;
+    border-radius:50%;
+    background:var(--bg);
+    border:3px solid var(--cyan);
+    box-shadow:0 0 10px rgba(34,211,238,0.7);
+  }
+  .tl-item h4{
+    font-size:15.5px;
+    font-weight:700;
+    margin-bottom:6px;
+    color:#fff;
+  }
+  .tl-item h4 span{
+    font-family:var(--font-h);
+    color:var(--cyan);
+    margin-right:8px;
+  }
+  .tl-item p{
+    font-size:13.5px;
+    color:var(--muted);
+  }
+
+  /* ============ tool cards (egg section) ============ */
+  .tool-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:22px;
+  }
+  @media (max-width:860px){ .tool-grid{grid-template-columns:1fr;} }
+  .tool-card{
+    background:linear-gradient(160deg,var(--surface),var(--surface-2));
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:28px;
+    transition:border-color .3s, transform .3s;
+  }
+  .tool-card:hover{
+    transform:translateY(-4px);
+    border-color:rgba(167,139,250,0.5);
+  }
+  .tool-icon{
+    width:46px;height:46px;
+    border-radius:12px;
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--font-h);
+    font-weight:900;
+    font-size:18px;
+    margin-bottom:16px;
+  }
+  .tool-card h3{font-size:17px; margin-bottom:6px;}
+  .tool-card p{font-size:13.5px; color:var(--muted); margin-bottom:14px;}
+  .tool-link{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    font-size:12.5px;
+    color:var(--cyan);
+    text-decoration:none;
+    border-bottom:1px solid rgba(34,211,238,0.35);
+    padding-bottom:2px;
+    word-break:break-all;
+  }
+
+  /* ============ CTA footer ============ */
+  footer{
+    position:relative;
+    z-index:1;
+    text-align:center;
+    padding:90px 24px 60px;
+    border-top:1px solid var(--line);
+  }
+  footer .cta{
+    font-family:var(--font-h);
+    font-size:clamp(20px,2.6vw,28px);
+    font-weight:700;
+    color:#fff;
+    margin-bottom:10px;
+  }
+  footer .cta span{color:var(--cyan);}
+  footer .flow{
+    display:flex;
+    justify-content:center;
+    gap:10px;
+    flex-wrap:wrap;
+    margin:30px 0;
+    font-family:var(--font-h);
+    font-size:12px;
+    letter-spacing:0.06em;
+    color:var(--muted);
+  }
+  footer .flow span.step-name{
+    padding:8px 16px;
+    border:1px solid var(--line);
+    border-radius:20px;
+  }
+  footer .copyright{
+    margin-top:40px;
+    font-size:11.5px;
+    color:#4b5c7d;
+    letter-spacing:0.05em;
+  }
+
+  /* ---------- back to top ---------- */
+  #backToTop{
+    position:fixed;
+    right:26px;
+    bottom:26px;
+    width:48px;
+    height:48px;
+    border-radius:50%;
+    border:1px solid rgba(34,211,238,0.5);
+    background:rgba(14,26,51,0.85);
+    backdrop-filter:blur(6px);
+    color:var(--cyan);
+    font-size:18px;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow:0 8px 24px rgba(6,11,24,0.6), 0 0 16px rgba(34,211,238,0.25);
+    opacity:0;
+    transform:translateY(14px);
+    pointer-events:none;
+    transition:opacity .25s ease, transform .25s ease, background .2s ease;
+    z-index:300;
+  }
+  #backToTop.visible{
+    opacity:1; transform:translateY(0); pointer-events:auto;
+  }
+  #backToTop:hover{
+    background:rgba(34,211,238,0.15);
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none !important; transition:none !important;}
+    html{scroll-behavior:auto;}
+  }
+</style>
+</head>
+<body>
+
+<div id="progress"></div>
+
+<nav>
+  <div class="brand"><span class="dot"></span>GEMINI CANVAS</div>
+  <div class="navlinks">
+    <a href="#core">四大應用</a>
+    <a href="#gather">整理心法</a>
+    <a href="#project">實戰案例</a>
+    <a href="#egg">彩蛋工具</a>
+  </div>
+</nav>
+
+<!-- ============ HERO ============ -->
+<section id="hero">
+  <div class="hero-frame reveal">
+    <img src="89.png" alt="用 Gemini Canvas 打造 AI 學習力 × 專業產出力">
+  </div>
+  <div class="scroll-cue reveal">
+    <span>SCROLL DOWN</span>
+    <span class="chev"></span>
+  </div>
+</section>
+
+<!-- ============ 四大核心應用 ============ -->
+<section id="core">
+  <div class="eyebrow reveal">CORE CAPABILITIES</div>
+  <h2 class="title reveal">Gemini Canvas 四大核心應用</h2>
+  <p class="sub reveal">互動式 AI 工作區，協助使用者進行多模態的資料處理，是所有教育應用的起點。</p>
+
+  <div class="grid4">
+    <div class="card reveal">
+      <div class="num">01</div>
+      <span class="en">TEXT &amp; DOCUMENTS</span>
+      <h3>深度寫作與文件管理</h3>
+      <ul>
+        <li>多格式長文草稿生成</li>
+        <li>一鍵格式轉化</li>
+      </ul>
+    </div>
+    <div class="card reveal">
+      <div class="num">02</div>
+      <span class="en">PRESENTATION DECK</span>
+      <h3>全自動簡報生成</h3>
+      <ul>
+        <li>提示詞直接構建簡報</li>
+        <li>消化多模態檔案</li>
+      </ul>
+    </div>
+    <div class="card reveal">
+      <div class="num">03</div>
+      <span class="en">VIBE CODING</span>
+      <h3>情境編碼與網頁開發</h3>
+      <ul>
+        <li>即時預覽與除錯</li>
+        <li>對話式迭代與 BI 儀表板</li>
+      </ul>
+    </div>
+    <div class="card reveal">
+      <div class="num">04</div>
+      <span class="en">AUDIO OVERVIEW</span>
+      <h3>音訊總覽與多模態整合</h3>
+      <ul>
+        <li>生成高質感語音摘要</li>
+        <li>情境化行動學習</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="core-note reveal">CANVAS 核心價值 —— <b>互動式 AI 工作區</b></div>
+</section>
+
+<!-- ============ 訊息整理大補帖 ============ -->
+<div class="band reveal">
+  <h2>訊息整理大補帖</h2>
+  <div class="tag">Gemini 與 Canvas 教育應用實戰</div>
+</div>
+
+<section id="gather">
+  <div class="eyebrow reveal">RESEARCH · CURATE · REFINE</div>
+  <h2 class="title reveal">訊息整理與教學教材建置心法</h2>
+  <p class="sub reveal">從主題設定、資料蒐集到 Canvas 深化編輯，一套可重複使用的教材產出流程。</p>
+
+  <div class="two-col reveal">
+    <div class="panel">
+      <h3>① 精準資料搜尋</h3>
+      <div class="chips">
+        <span class="chip">主題明確</span>
+        <span class="chip">格式：文字 / Markdown / PDF / PPT / 影片</span>
+        <span class="chip">語言：中 / 英</span>
+        <span class="chip">來源：社群、新聞、YouTube、期刊</span>
+        <span class="chip">年份：2025</span>
+        <span class="chip">排除廣告宣傳</span>
+      </div>
+      <div class="prompt-box">用 NotebookLM 基本搜尋：
+「關於【你的主題】有沒有值得引用的
+文章、部落格或新聞，可以化為我在
+課堂上的教材」</div>
+    </div>
+
+    <div class="panel">
+      <h3>② 多媒體檔案摘要</h3>
+      <ul class="mini-list">
+        <li>利用 <b>NotebookLM</b> 初步搜尋主題資料</li>
+        <li>對 <b>YouTube 影片</b> 進行重點摘要</li>
+        <li>適用範疇：新聞影片、教學影片、記錄片、宣導短片、形象影片、TED 影片</li>
+      </ul>
+      <div class="prompt-box">「請摘要這則【你的主題】影片的重點」</div>
+    </div>
+  </div>
+
+  <div style="height:22px"></div>
+
+  <div class="panel reveal">
+    <h3>③ Canvas 編輯與深化 —— 加入 Canvas 的神奇力量</h3>
+    <div class="steps" style="margin-top:16px;">
+      <div class="step">
+        <div class="step-head">
+          <div class="step-badge" style="color:var(--cyan)">✎</div>
+          <h4>編輯・修改</h4>
+        </div>
+        <ul>
+          <li>選取段落詢問 Gemini</li>
+          <li>調整長度、語氣</li>
+        </ul>
+      </div>
+      <div class="step">
+        <div class="step-head">
+          <div class="step-badge" style="color:var(--purple)">?</div>
+          <h4>學習卡・測驗</h4>
+        </div>
+        <ul>
+          <li>正確 / 錯誤答案解釋、提示功能</li>
+          <li>學習報表：分數、正確率、答題狀況</li>
+        </ul>
+      </div>
+      <div class="step">
+        <div class="step-head">
+          <div class="step-badge" style="color:var(--amber)">▶</div>
+          <h4>成效分析</h4>
+        </div>
+        <ul>
+          <li>分析學習成效</li>
+          <li>生成更多練習題與研讀指南</li>
+        </ul>
+      </div>
+      <div class="step">
+        <div class="step-head">
+          <div class="step-badge" style="color:var(--green)">⌂</div>
+          <h4>網頁・多模態</h4>
+        </div>
+        <ul>
+          <li>網頁 / 資訊圖表、互動式學習</li>
+          <li>整合 Google 協作平台、語音摘要</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div style="height:22px"></div>
+
+  <div class="panel reveal">
+    <h3>④ 專題整理匯出</h3>
+    <ul class="mini-list">
+      <li><b>心智圖整理：</b>「請幫我用心智圖結構整理資料來源，用 Markdown 格式顯示，h1 是題目、h2 是標題，內容整理成條列式」</li>
+      <li><b>心智圖工具：</b> markmap.js.org，並可嵌入 Google Sites 網頁</li>
+      <li><b>文案撰寫小幫手：</b>扮演思維縝密的寫作者，從資料中提煉最反直覺、最具影響力的要點，整理成引人入勝的清單文章，附引用連結與發人深省的結尾</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ 資料產出的神奇工具 ============ -->
+<div class="band reveal">
+  <h2>資料產出的神奇工具</h2>
+  <div class="tag">Gemini 與 Canvas 教育應用實戰</div>
+</div>
+
+<section id="project">
+  <div class="eyebrow reveal">CASE STUDY</div>
+  <h2 class="title reveal">專題實戰：辨識 AI 詐騙與深偽（Deepfake）</h2>
+  <p class="sub reveal">從一則主題出發，用 Canvas 一路產出報導、教材、簡報、語音摘要與互動網頁 —— 完整的六步驟成品產出流程。</p>
+
+  <div class="timeline">
+    <div class="tl-item reveal">
+      <h4><span>01</span>Canvas 啟動</h4>
+      <p>就蒐集到的所有資訊，撰寫一篇深入討論 1500 字的報導文章，語氣幽默輕鬆、標題吸引人；文末整理引用資料並附上連結。</p>
+    </div>
+    <div class="tl-item reveal">
+      <h4><span>02</span>建立網頁、資訊圖表</h4>
+      <p>整合 Google Sites，將文章轉化為可瀏覽的網頁與資訊圖表。</p>
+    </div>
+    <div class="tl-item reveal">
+      <h4><span>03</span>建立學習卡、測驗</h4>
+      <p>切回 Canvas 文章，整理重要知識關鍵字，建立 5 張 Canvas「學習卡」與 5 題「測驗」。</p>
+    </div>
+    <div class="tl-item reveal">
+      <h4><span>04</span>語音摘要</h4>
+      <p>將文章轉化為高質感語音摘要，支援情境化行動學習。</p>
+    </div>
+    <div class="tl-item reveal">
+      <h4><span>05</span>建立簡報</h4>
+      <p>一鍵將文章重點自動構建為完整簡報。</p>
+    </div>
+    <div class="tl-item reveal">
+      <h4><span>06</span>開發程式（Vibe Coding）</h4>
+      <p>
+        使用 <b style="color:#fff">Tailwind CSS</b> 與原生 JavaScript 製作單頁 RWD 響應式網頁：內建 5 個詐騙故事（如假檢警、投資詐騙），
+        每則含 5 段文字與意境圖；頂部下拉選單即時切換卡片內容；Grid 版面顯示圓角陰影卡片（不使用彈出視窗）；
+        右上角播放鈕以幻燈片方式輪播故事，並搭配平滑淡入淡出動畫，整體 UI 簡約現代。
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 彩蛋 ============ -->
+<div class="band reveal">
+  <h2>彩蛋</h2>
+  <div class="tag">Gemini 與 Canvas 教育應用實戰</div>
+</div>
+
+<section id="egg">
+  <div class="eyebrow reveal">BONUS TOOLS</div>
+  <h2 class="title reveal">外部 Markdown 轉化工具</h2>
+  <p class="sub reveal">除了 Canvas 本身，這兩個能與 Markdown 格式搭配的視覺化工具，讓產出更進一步。</p>
+
+  <div class="tool-grid">
+    <div class="tool-card reveal">
+      <div class="tool-icon" style="background:rgba(34,211,238,0.12); color:var(--cyan); border:1px solid rgba(34,211,238,0.4);">M↓</div>
+      <h3>mdPPT — MD 簡報生成器</h3>
+      <p>生成 Markdown 文件 → 調整文件（在 h2 前加上水平線分頁）→ 匯入 mdPPT，即可編輯、設定樣版、播放 / 預覽（Esc），並下載成簡報。</p>
+      <a class="tool-link" href="https://edreamer.github.io/mdppt/" target="_blank" rel="noopener">↗ edreamer.github.io/mdppt</a>
+    </div>
+    <div class="tool-card reveal">
+      <div class="tool-icon" style="background:rgba(167,139,250,0.12); color:var(--purple); border:1px solid rgba(167,139,250,0.4);">✳</div>
+      <h3>Markmap — 心智圖生成器</h3>
+      <p>請 Gemini 以「心智圖結構」輸出 Markdown 格式後，貼入 Markmap 網站即可自動生成互動式心智圖，支援下載為 SVG 圖片或互動式網頁檔案。</p>
+      <a class="tool-link" href="https://markmap.js.org/" target="_blank" rel="noopener">↗ markmap.js.org</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="cta reveal">善用 Gemini Canvas，讓 AI 成為你的<span>超級助教</span>！</div>
+  <div class="flow reveal">
+    <span class="step-name">收集</span>
+    <span class="step-name">整理</span>
+    <span class="step-name">轉化</span>
+    <span class="step-name">產出</span>
+  </div>
+  <div class="copyright">Gemini Canvas ｜教育應用實戰重點摘要</div>
+</footer>
+
+<button id="backToTop" aria-label="回到頂部" title="回到頂部">↑</button>
+
+<script>
+  // progress bar
+  const progress = document.getElementById('progress');
+  function updateProgress(){
+    const h = document.documentElement;
+    const scrolled = (h.scrollTop) / (h.scrollHeight - h.clientHeight) * 100;
+    progress.style.width = scrolled + '%';
+  }
+  document.addEventListener('scroll', updateProgress, { passive:true });
+  updateProgress();
+
+  // back to top
+  const btn = document.getElementById('backToTop');
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 400) btn.classList.add('visible');
+    else btn.classList.remove('visible');
+  }, { passive:true });
+  btn.addEventListener('click', () => window.scrollTo({ top:0, behavior:'smooth' }));
+
+  // reveal on scroll
+  const revealEls = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting){
+        e.target.classList.add('in');
+        io.unobserve(e.target);
+      }
+    });
+  }, { threshold:0.12, rootMargin:"0px 0px -60px 0px" });
+  revealEls.forEach(el => io.observe(el));
+
+  // nav active state
+  const sections = document.querySelectorAll('section[id]');
+  const links = document.querySelectorAll('.navlinks a');
+  const navIO = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting){
+        links.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + entry.target.id));
+      }
+    });
+  }, { threshold:0.4 });
+  sections.forEach(s => navIO.observe(s));
+</script>
+
+</body>
+</html>

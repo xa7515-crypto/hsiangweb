@@ -1,0 +1,1435 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HTML 取代 Markdown？AI 輸出格式的革命</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&family=Space+Mono:wght@400;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --yellow: #f5e642;
+    --pink: #ff3ea5;
+    --cyan: #00e5ff;
+    --green: #39ff14;
+    --orange: #ff6b35;
+    --white: #f0f0f0;
+    --card: #13131f;
+    --border: rgba(255,255,255,0.08);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--white);
+    font-family: 'Noto Sans TC', sans-serif;
+    overflow-x: hidden;
+    cursor: default;
+  }
+
+  /* SLIDE SYSTEM */
+  .slides-container {
+    position: relative;
+  }
+
+  .slide {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 60px 80px;
+    position: relative;
+    overflow: hidden;
+    border-bottom: 2px solid var(--border);
+  }
+
+  /* BG DECORATIONS */
+  .slide::before {
+    content: attr(data-num);
+    position: absolute;
+    right: -20px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-family: 'Syne', sans-serif;
+    font-size: 28vw;
+    font-weight: 800;
+    color: rgba(255,255,255,0.02);
+    pointer-events: none;
+    line-height: 1;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 40px;
+    background: rgba(10,10,15,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav-logo {
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    color: var(--yellow);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .nav-dots {
+    display: flex;
+    gap: 8px;
+  }
+
+  .nav-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    cursor: pointer;
+    transition: all 0.3s;
+    border: none;
+  }
+
+  .nav-dot:hover, .nav-dot.active {
+    background: var(--yellow);
+    transform: scale(1.3);
+  }
+
+  /* SLIDE 1 — HERO */
+  #slide-1 {
+    background: var(--bg);
+    align-items: center;
+    text-align: center;
+    padding-top: 100px;
+  }
+
+  #slide-1 .hero-badge {
+    display: inline-block;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--pink);
+    border: 1px solid var(--pink);
+    padding: 6px 16px;
+    border-radius: 20px;
+    margin-bottom: 32px;
+    animation: fadeUp 0.6s ease both;
+  }
+
+  #slide-1 h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(52px, 9vw, 130px);
+    font-weight: 800;
+    line-height: 0.95;
+    letter-spacing: -3px;
+    animation: fadeUp 0.7s 0.1s ease both;
+  }
+
+  #slide-1 h1 .highlight-html {
+    color: var(--yellow);
+    position: relative;
+    display: inline-block;
+  }
+
+  #slide-1 h1 .highlight-html::after {
+    content: '';
+    position: absolute;
+    bottom: 4px; left: 0; right: 0;
+    height: 8px;
+    background: var(--pink);
+    z-index: -1;
+    transform: skewX(-5deg);
+  }
+
+  #slide-1 .sub {
+    font-size: 20px;
+    color: rgba(240,240,240,0.5);
+    margin-top: 28px;
+    animation: fadeUp 0.7s 0.2s ease both;
+  }
+
+  #slide-1 .hero-tags {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 40px;
+    animation: fadeUp 0.7s 0.3s ease both;
+  }
+
+  .tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    padding: 8px 18px;
+    border-radius: 4px;
+    border: 1px solid;
+  }
+
+  .tag-yellow { color: var(--yellow); border-color: var(--yellow); background: rgba(245,230,66,0.07); }
+  .tag-cyan { color: var(--cyan); border-color: var(--cyan); background: rgba(0,229,255,0.07); }
+  .tag-pink { color: var(--pink); border-color: var(--pink); background: rgba(255,62,165,0.07); }
+
+  .scroll-hint {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: rgba(255,255,255,0.3);
+    letter-spacing: 2px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    animation: pulse 2s infinite;
+  }
+
+  .scroll-arrow {
+    width: 20px; height: 20px;
+    border-right: 2px solid rgba(255,255,255,0.3);
+    border-bottom: 2px solid rgba(255,255,255,0.3);
+    transform: rotate(45deg);
+    animation: bounce 1.5s infinite;
+  }
+
+  /* SLIDE 2 — ORIGIN */
+  #slide-2 { background: linear-gradient(135deg, #0a0a0f 60%, #1a0a1a); }
+
+  .origin-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .origin-left .date-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--pink);
+    letter-spacing: 2px;
+    margin-bottom: 16px;
+    text-transform: uppercase;
+  }
+
+  .origin-left h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(36px, 5vw, 72px);
+    font-weight: 800;
+    line-height: 1.05;
+    margin-bottom: 24px;
+  }
+
+  .origin-left p {
+    font-size: 17px;
+    line-height: 1.7;
+    color: rgba(240,240,240,0.65);
+    max-width: 500px;
+  }
+
+  .origin-left p strong {
+    color: var(--white);
+    font-weight: 700;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 24px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s, border-color 0.3s;
+  }
+
+  .stat-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(255,255,255,0.2);
+  }
+
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+
+  .stat-card:nth-child(1)::before { background: var(--yellow); }
+  .stat-card:nth-child(2)::before { background: var(--pink); }
+  .stat-card:nth-child(3)::before { background: var(--cyan); }
+  .stat-card:nth-child(4)::before { background: var(--green); }
+
+  .stat-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 42px;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+
+  .stat-card:nth-child(1) .stat-num { color: var(--yellow); }
+  .stat-card:nth-child(2) .stat-num { color: var(--pink); }
+  .stat-card:nth-child(3) .stat-num { color: var(--cyan); }
+  .stat-card:nth-child(4) .stat-num { color: var(--green); }
+
+  .stat-label {
+    font-size: 13px;
+    color: rgba(255,255,255,0.45);
+    font-family: 'Space Mono', monospace;
+  }
+
+  /* SECTION HEADERS */
+  .section-header {
+    margin-bottom: 50px;
+  }
+
+  .section-eyebrow {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--cyan);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section-eyebrow::before {
+    content: '';
+    width: 30px; height: 1px;
+    background: var(--cyan);
+  }
+
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(36px, 5vw, 68px);
+    font-weight: 800;
+    line-height: 1.0;
+  }
+
+  /* SLIDE 3 — WHY MARKDOWN */
+  #slide-3 { background: var(--bg); }
+
+  .timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    max-width: 900px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 120px;
+    top: 20px; bottom: 20px;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--yellow), var(--pink), var(--cyan), var(--green));
+  }
+
+  .timeline-item {
+    display: flex;
+    gap: 40px;
+    align-items: flex-start;
+    padding: 24px 0;
+    position: relative;
+  }
+
+  .timeline-era {
+    width: 100px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  .timeline-era .era-name {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: rgba(255,255,255,0.4);
+    letter-spacing: 1px;
+  }
+
+  .timeline-dot {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 4px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .timeline-item:nth-child(1) .timeline-dot { background: var(--yellow); box-shadow: 0 0 12px var(--yellow); }
+  .timeline-item:nth-child(2) .timeline-dot { background: var(--pink); box-shadow: 0 0 12px var(--pink); }
+  .timeline-item:nth-child(3) .timeline-dot { background: var(--cyan); box-shadow: 0 0 12px var(--cyan); }
+  .timeline-item:nth-child(4) .timeline-dot { background: var(--green); box-shadow: 0 0 12px var(--green); }
+
+  .timeline-content h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .timeline-content .ctx-size {
+    font-family: 'Space Mono', monospace;
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .timeline-item:nth-child(1) .ctx-size { color: var(--yellow); }
+  .timeline-item:nth-child(2) .ctx-size { color: var(--pink); }
+  .timeline-item:nth-child(3) .ctx-size { color: var(--cyan); }
+  .timeline-item:nth-child(4) .ctx-size { color: var(--green); }
+
+  .timeline-content p {
+    font-size: 14px;
+    color: rgba(255,255,255,0.5);
+    line-height: 1.6;
+    max-width: 460px;
+  }
+
+  .breakthrough-banner {
+    background: linear-gradient(135deg, rgba(57,255,20,0.1), rgba(0,229,255,0.1));
+    border: 1px solid rgba(57,255,20,0.3);
+    border-radius: 12px;
+    padding: 20px 28px;
+    margin-top: 32px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    max-width: 900px;
+    margin-left: auto; margin-right: auto;
+  }
+
+  .breakthrough-banner .check {
+    font-size: 28px;
+    flex-shrink: 0;
+  }
+
+  .breakthrough-banner p {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--green);
+  }
+
+  /* SLIDE 4 — ADVANTAGES */
+  #slide-4 { background: linear-gradient(135deg, #0a0a0f, #0a0f1a); }
+
+  .advantages-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .adv-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 36px 32px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s;
+    cursor: default;
+  }
+
+  .adv-card:hover { transform: translateY(-6px) scale(1.01); }
+
+  .adv-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.3s;
+    border-radius: 20px;
+  }
+
+  .adv-card:hover::after { opacity: 1; }
+
+  .adv-card:nth-child(1) { border-top: 3px solid var(--yellow); }
+  .adv-card:nth-child(1)::after { background: radial-gradient(circle at top left, rgba(245,230,66,0.05), transparent 60%); }
+
+  .adv-card:nth-child(2) { border-top: 3px solid var(--pink); }
+  .adv-card:nth-child(2)::after { background: radial-gradient(circle at top left, rgba(255,62,165,0.05), transparent 60%); }
+
+  .adv-card:nth-child(3) { border-top: 3px solid var(--cyan); }
+  .adv-card:nth-child(3)::after { background: radial-gradient(circle at top left, rgba(0,229,255,0.05), transparent 60%); }
+
+  .adv-card:nth-child(4) { border-top: 3px solid var(--green); }
+  .adv-card:nth-child(4)::after { background: radial-gradient(circle at top left, rgba(57,255,20,0.05), transparent 60%); }
+
+  .adv-icon {
+    font-size: 44px;
+    margin-bottom: 18px;
+    display: block;
+  }
+
+  .adv-card h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 26px;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+
+  .adv-card:nth-child(1) h3 { color: var(--yellow); }
+  .adv-card:nth-child(2) h3 { color: var(--pink); }
+  .adv-card:nth-child(3) h3 { color: var(--cyan); }
+  .adv-card:nth-child(4) h3 { color: var(--green); }
+
+  .adv-card p {
+    font-size: 15px;
+    line-height: 1.7;
+    color: rgba(240,240,240,0.55);
+  }
+
+  /* SLIDE 5 — COMPARISON */
+  #slide-5 { background: var(--bg); }
+
+  .vs-container {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 32px;
+    max-width: 1100px;
+    margin: 0 auto;
+    align-items: start;
+  }
+
+  .vs-col {
+    background: var(--card);
+    border-radius: 20px;
+    padding: 36px 28px;
+    border: 1px solid var(--border);
+  }
+
+  .vs-col.html-col { border-color: rgba(245,230,66,0.25); }
+  .vs-col.md-col { border-color: rgba(0,229,255,0.15); }
+
+  .vs-col-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 32px;
+    font-weight: 800;
+    margin-bottom: 6px;
+  }
+
+  .html-col .vs-col-title { color: var(--yellow); }
+  .md-col .vs-col-title { color: var(--cyan); }
+
+  .vs-col-sub {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: rgba(255,255,255,0.35);
+    letter-spacing: 2px;
+    margin-bottom: 28px;
+  }
+
+  .vs-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .vs-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    font-size: 14px;
+    color: rgba(240,240,240,0.7);
+    line-height: 1.5;
+  }
+
+  .vs-list li .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    margin-top: 5px;
+    flex-shrink: 0;
+  }
+
+  .html-col .vs-list li .dot { background: var(--yellow); }
+  .md-col .vs-list li .dot { background: var(--cyan); }
+
+  .vs-divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .vs-badge {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--white);
+    background: var(--card);
+    border: 2px solid rgba(255,255,255,0.15);
+    border-radius: 50%;
+    width: 60px; height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* SLIDE 6 — COMMUNITY */
+  #slide-6 { background: linear-gradient(135deg, #0a0a0f, #0f0a1a); }
+
+  .community-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .camp {
+    border-radius: 20px;
+    padding: 36px 32px;
+    border: 1px solid;
+  }
+
+  .camp-pro {
+    background: rgba(57,255,20,0.04);
+    border-color: rgba(57,255,20,0.2);
+  }
+
+  .camp-con {
+    background: rgba(255,107,53,0.04);
+    border-color: rgba(255,107,53,0.2);
+  }
+
+  .camp-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+    margin-bottom: 28px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .camp-pro .camp-title { color: var(--green); }
+  .camp-con .camp-title { color: var(--orange); }
+
+  .camp-items {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .camp-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    font-size: 15px;
+    line-height: 1.5;
+    color: rgba(240,240,240,0.75);
+  }
+
+  .camp-item .icon {
+    font-size: 18px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .quote-block {
+    max-width: 1100px;
+    margin: 40px auto 0;
+    background: var(--card);
+    border-left: 4px solid var(--yellow);
+    border-radius: 0 16px 16px 0;
+    padding: 28px 32px;
+  }
+
+  .quote-text {
+    font-size: 18px;
+    line-height: 1.6;
+    color: var(--white);
+    font-style: italic;
+    margin-bottom: 12px;
+  }
+
+  .quote-attr {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--yellow);
+    letter-spacing: 1px;
+  }
+
+  /* SLIDE 8 — RAG */
+  #slide-8 { background: var(--bg); }
+
+  .rag-split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+
+  .rag-card {
+    border-radius: 20px;
+    padding: 48px 36px;
+    text-align: center;
+    border: 1px solid;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .rag-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 200px; height: 200px;
+    border-radius: 50%;
+    filter: blur(60px);
+    opacity: 0.2;
+  }
+
+  .rag-html {
+    background: rgba(245,230,66,0.04);
+    border-color: rgba(245,230,66,0.25);
+  }
+
+  .rag-html::before { background: var(--yellow); }
+
+  .rag-md {
+    background: rgba(0,229,255,0.04);
+    border-color: rgba(0,229,255,0.2);
+  }
+
+  .rag-md::before { background: var(--cyan); }
+
+  .rag-icon { font-size: 56px; margin-bottom: 20px; }
+
+  .rag-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .rag-html .rag-label { color: var(--yellow); }
+  .rag-md .rag-label { color: var(--cyan); }
+
+  .rag-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+    margin-bottom: 12px;
+  }
+
+  .rag-html .rag-title { color: var(--yellow); }
+  .rag-md .rag-title { color: var(--cyan); }
+
+  .rag-desc {
+    font-size: 14px;
+    color: rgba(240,240,240,0.55);
+    line-height: 1.6;
+  }
+
+  .rag-conclusion {
+    max-width: 1000px;
+    margin: 32px auto 0;
+    text-align: center;
+    font-size: 18px;
+    color: rgba(255,255,255,0.6);
+    padding: 20px;
+    border: 1px dashed rgba(255,255,255,0.12);
+    border-radius: 12px;
+  }
+
+  .rag-conclusion strong { color: var(--white); }
+
+  /* SLIDE 9 — WHEN TO USE */
+  #slide-9 { background: linear-gradient(135deg, #0a0a0f, #0a0f0f); }
+
+  .when-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .when-col {
+    border-radius: 20px;
+    padding: 36px 32px;
+  }
+
+  .when-html {
+    background: rgba(245,230,66,0.05);
+    border: 1px solid rgba(245,230,66,0.2);
+  }
+
+  .when-md {
+    background: rgba(0,229,255,0.05);
+    border: 1px solid rgba(0,229,255,0.15);
+  }
+
+  .when-col-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+    margin-bottom: 28px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .when-html .when-col-title { color: var(--yellow); }
+  .when-md .when-col-title { color: var(--cyan); }
+
+  .when-items {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .when-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 15px;
+    color: rgba(240,240,240,0.75);
+    background: rgba(255,255,255,0.04);
+    padding: 14px 18px;
+    border-radius: 10px;
+    transition: background 0.2s;
+  }
+
+  .when-item:hover { background: rgba(255,255,255,0.08); }
+
+  .when-item .emoji { font-size: 20px; }
+
+  /* SLIDE 10 — CONCLUSION */
+  #slide-10 {
+    background: var(--bg);
+    align-items: center;
+    text-align: center;
+  }
+
+  .conclusion-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(40px, 7vw, 100px);
+    font-weight: 800;
+    line-height: 1.0;
+    letter-spacing: -2px;
+    margin-bottom: 24px;
+    animation: fadeUp 0.7s ease both;
+  }
+
+  .conclusion-sub {
+    font-size: 20px;
+    color: rgba(255,255,255,0.5);
+    max-width: 600px;
+    margin: 0 auto 40px;
+    line-height: 1.6;
+    animation: fadeUp 0.7s 0.1s ease both;
+  }
+
+  .conclusion-pill {
+    display: inline-block;
+    background: var(--yellow);
+    color: #0a0a0f;
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    font-weight: 800;
+    padding: 14px 36px;
+    border-radius: 40px;
+    margin-bottom: 48px;
+    animation: fadeUp 0.7s 0.2s ease both;
+  }
+
+  .credit {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: rgba(255,255,255,0.2);
+    letter-spacing: 2px;
+    animation: fadeUp 0.7s 0.3s ease both;
+  }
+
+  /* ANIMATIONS */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.7; }
+  }
+
+  @keyframes bounce {
+    0%, 100% { transform: rotate(45deg) translateY(0); }
+    50% { transform: rotate(45deg) translateY(5px); }
+  }
+
+  /* SCROLL ANIMATIONS */
+  .reveal {
+    opacity: 0;
+    transform: translateY(40px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .reveal-delay-1 { transition-delay: 0.1s; }
+  .reveal-delay-2 { transition-delay: 0.2s; }
+  .reveal-delay-3 { transition-delay: 0.3s; }
+  .reveal-delay-4 { transition-delay: 0.4s; }
+
+  /* PROGRESS BAR */
+  .progress-bar {
+    position: fixed;
+    top: 0; left: 0;
+    height: 3px;
+    background: linear-gradient(to right, var(--yellow), var(--pink), var(--cyan));
+    z-index: 200;
+    transition: width 0.2s;
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 768px) {
+    .slide { padding: 80px 28px 60px; }
+    .origin-grid, .community-grid, .rag-split, .when-grid { grid-template-columns: 1fr; }
+    .vs-container { grid-template-columns: 1fr; }
+    .vs-divider { display: none; }
+    .advantages-grid { grid-template-columns: 1fr; }
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+    .timeline::before { left: 80px; }
+    .timeline-era { width: 60px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+
+<nav>
+  <div class="nav-logo">HTML vs MD · 2026</div>
+  <div class="nav-dots" id="navDots"></div>
+</nav>
+
+<!-- SLIDE 1: HERO -->
+<section class="slide" id="slide-1" data-num="01">
+  <div class="hero-badge">AI 輸出格式的革命 · 2026</div>
+  <h1>
+    <span class="highlight-html">HTML</span><br>
+    取代<br>Markdown？
+  </h1>
+  <p class="sub">從一篇文章，到撼動整個 AI 工程師社群的大辯論</p>
+  <div class="hero-tags">
+    <span class="tag tag-yellow"># Anthropic</span>
+    <span class="tag tag-cyan"># AI Engineering</span>
+    <span class="tag tag-pink"># Claude Code</span>
+  </div>
+  <div class="scroll-hint">
+    SCROLL
+    <div class="scroll-arrow"></div>
+  </div>
+</section>
+
+<!-- SLIDE 2: ORIGIN -->
+<section class="slide" id="slide-2" data-num="02">
+  <div class="origin-grid">
+    <div class="origin-left">
+      <div class="date-label reveal">📅 2026 年 5 月 8 日</div>
+      <h2 class="reveal reveal-delay-1">事件<br>起源</h2>
+      <p class="reveal reveal-delay-2">
+        Anthropic Claude Code 工程師 <strong>Thariq Shihipar</strong> 在 X 平台發表文章
+        <strong>《The Unreasonable Effectiveness of HTML》</strong>，
+        16 小時內迅速引爆全球工程師社群，登上 Hacker News 熱榜。
+      </p>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card reveal reveal-delay-1">
+        <div class="stat-num">440萬+</div>
+        <div class="stat-label">16 小時瀏覽次數</div>
+      </div>
+      <div class="stat-card reveal reveal-delay-2">
+        <div class="stat-num">8,200+</div>
+        <div class="stat-label">按讚數</div>
+      </div>
+      <div class="stat-card reveal reveal-delay-3">
+        <div class="stat-num">15,700+</div>
+        <div class="stat-label">書籤收藏數</div>
+      </div>
+      <div class="stat-card reveal reveal-delay-4">
+        <div class="stat-num">🔥#1</div>
+        <div class="stat-label">Hacker News 熱榜</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 3: WHY MARKDOWN -->
+<section class="slide" id="slide-3" data-num="03">
+  <div class="section-header reveal">
+    <div class="section-eyebrow">Context Window 演進</div>
+    <div class="section-title">為什麼<br>過去用 Markdown？</div>
+  </div>
+
+  <div class="timeline">
+    <div class="timeline-item reveal reveal-delay-1">
+      <div class="timeline-era"><div class="era-name">GPT-3<br>時代</div></div>
+      <div class="timeline-dot"></div>
+      <div class="timeline-content">
+        <div class="ctx-size">4K tokens</div>
+        <p>每個字元都寶貴，Markdown 語法簡潔節省 token，是當時唯一理性選擇</p>
+      </div>
+    </div>
+    <div class="timeline-item reveal reveal-delay-2">
+      <div class="timeline-era"><div class="era-name">GPT-4<br>早期</div></div>
+      <div class="timeline-dot"></div>
+      <div class="timeline-content">
+        <div class="ctx-size">8K tokens</div>
+        <p>HTML 標籤開銷仍然相對昂貴，Markdown 習慣延續</p>
+      </div>
+    </div>
+    <div class="timeline-item reveal reveal-delay-3">
+      <div class="timeline-era"><div class="era-name">Claude 2</div></div>
+      <div class="timeline-dot"></div>
+      <div class="timeline-content">
+        <div class="ctx-size">100K tokens</div>
+        <p>視窗大幅擴大，但工程師習慣尚未改變</p>
+      </div>
+    </div>
+    <div class="timeline-item reveal reveal-delay-4">
+      <div class="timeline-era"><div class="era-name">Claude 3.x<br>/ 4.x</div></div>
+      <div class="timeline-dot"></div>
+      <div class="timeline-content">
+        <div class="ctx-size">200K – 1M</div>
+        <p>百萬 token 時代正式到來，HTML 的 token 開銷不再是瓶頸</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="breakthrough-banner reveal">
+    <div class="check">✅</div>
+    <p>進入百萬 token 時代，HTML 的 token 開銷不再是瓶頸，格局已然改變</p>
+  </div>
+</section>
+
+<!-- SLIDE 4: ADVANTAGES -->
+<section class="slide" id="slide-4" data-num="04">
+  <div class="section-header reveal">
+    <div class="section-eyebrow">HTML 的優勢</div>
+    <div class="section-title">四大<br>突破能力</div>
+  </div>
+
+  <div class="advantages-grid">
+    <div class="adv-card reveal reveal-delay-1">
+      <span class="adv-icon"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MCA4MCIgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIj4KICA8cmVjdCB4PSI4IiB5PSI0NCIgd2lkdGg9IjE0IiBoZWlnaHQ9IjI4IiByeD0iMyIgZmlsbD0iI2Y1ZTY0MiIvPgogIDxyZWN0IHg9IjI3IiB5PSIyOCIgd2lkdGg9IjE0IiBoZWlnaHQ9IjQ0IiByeD0iMyIgZmlsbD0iI2Y1ZTY0MiIgb3BhY2l0eT0iMC43Ii8+CiAgPHJlY3QgeD0iNDYiIHk9IjM0IiB3aWR0aD0iMTQiIGhlaWdodD0iMzgiIHJ4PSIzIiBmaWxsPSIjZjVlNjQyIiBvcGFjaXR5PSIwLjUiLz4KICA8cmVjdCB4PSI2NSIgeT0iMTYiIHdpZHRoPSI4IiBoZWlnaHQ9IjU2IiByeD0iMyIgZmlsbD0iI2Y1ZTY0MiIgb3BhY2l0eT0iMC4zNSIvPgogIDxsaW5lIHgxPSI2IiB5MT0iNzIiIHgyPSI3NCIgeTI9IjcyIiBzdHJva2U9IiNmNWU2NDIiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgPHBvbHlsaW5lIHBvaW50cz0iMTAsNTggMzMsMzggNTIsNDYgNzIsMjAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzAwZTVmZiIgc3Ryb2tlLXdpZHRoPSIyLjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgogIDxjaXJjbGUgY3g9IjEwIiBjeT0iNTgiIHI9IjMiIGZpbGw9IiMwMGU1ZmYiLz4KICA8Y2lyY2xlIGN4PSIzMyIgY3k9IjM4IiByPSIzIiBmaWxsPSIjMDBlNWZmIi8+CiAgPGNpcmNsZSBjeD0iNTIiIGN5PSI0NiIgcj0iMyIgZmlsbD0iIzAwZTVmZiIvPgogIDxjaXJjbGUgY3g9IjcyIiBjeT0iMjAiIHI9IjMiIGZpbGw9IiMwMGU1ZmYiLz4KPC9zdmc+" width="52" height="52" alt="📊" style="display:block;margin-bottom:2px"/></span>
+      <h3>資訊密度</h3>
+      <p>可嵌入 SVG 圖表、互動表格、錨點導覽，讓複雜資訊一頁呈現，而非線性文字堆砌</p>
+    </div>
+    <div class="adv-card reveal reveal-delay-2">
+      <span class="adv-icon"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MCA4MCIgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIj4KICA8Y2lyY2xlIGN4PSI0MCIgY3k9IjQwIiByPSIyOCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmYzZWE1IiBzdHJva2Utd2lkdGg9IjIiLz4KICA8Y2lyY2xlIGN4PSI0MCIgY3k9IjQwIiByPSIyMiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmYzZWE1IiBzdHJva2Utd2lkdGg9IjEiIG9wYWNpdHk9IjAuNCIvPgogIDxjaXJjbGUgY3g9IjIwIiBjeT0iMjgiIHI9IjciIGZpbGw9IiNmNWU2NDIiLz4KICA8Y2lyY2xlIGN4PSI1MiIgY3k9IjE2IiByPSI3IiBmaWxsPSIjZmYzZWE1Ii8+CiAgPGNpcmNsZSBjeD0iNjQiIGN5PSI0NCIgcj0iNyIgZmlsbD0iIzAwZTVmZiIvPgogIDxjaXJjbGUgY3g9IjUyIiBjeT0iNjQiIHI9IjciIGZpbGw9IiMzOWZmMTQiLz4KICA8Y2lyY2xlIGN4PSIyNCIgY3k9IjYwIiByPSI3IiBmaWxsPSIjZmY2YjM1Ii8+CiAgPGNpcmNsZSBjeD0iNDAiIGN5PSI0MCIgcj0iNSIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjE1KSIgc3Ryb2tlPSIjZjBmMGYwIiBzdHJva2Utd2lkdGg9IjEuNSIvPgo8L3N2Zz4=" width="52" height="52" alt="🎨" style="display:block;margin-bottom:2px"/></span>
+      <h3>視覺豐富度</h3>
+      <p>CSS 排版 + base64 內嵌圖片 + 空間佈局，視覺設計遠超 Markdown 的純文字限制</p>
+    </div>
+    <div class="adv-card reveal reveal-delay-3">
+      <span class="adv-icon"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MCA4MCIgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIj4KICA8cG9seWdvbiBwb2ludHM9IjQ2LDggMjAsNDYgMzgsNDYgMzQsNzIgNjAsMzIgNDIsMzIiIGZpbGw9IiMwMGU1ZmYiIG9wYWNpdHk9IjAuOSIvPgogIDxwb2x5Z29uIHBvaW50cz0iNDYsOCAyMCw0NiAzOCw0NiAzNCw3MiA2MCwzMiA0MiwzMiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDBlNWZmIiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgogIDxlbGxpcHNlIGN4PSI0MCIgY3k9IjQwIiByeD0iMzQiIHJ5PSIzNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDBlNWZmIiBzdHJva2Utd2lkdGg9IjEiIG9wYWNpdHk9IjAuMjUiIHN0cm9rZS1kYXNoYXJyYXk9IjQgMyIvPgo8L3N2Zz4=" width="52" height="52" alt="⚡" style="display:block;margin-bottom:2px"/></span>
+      <h3>互動能力</h3>
+      <p>JavaScript DOM 操作、可執行程式碼區塊、按鈕與篩選功能，Markdown 完全無法實現</p>
+    </div>
+    <div class="adv-card reveal reveal-delay-4">
+      <span class="adv-icon"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MCA4MCIgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIj4KICA8cmVjdCB4PSI4IiB5PSIyNCIgd2lkdGg9IjI4IiBoZWlnaHQ9IjE2IiByeD0iOCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMzlmZjE0IiBzdHJva2Utd2lkdGg9IjMiLz4KICA8cmVjdCB4PSI0NCIgeT0iMjQiIHdpZHRoPSIyOCIgaGVpZ2h0PSIxNiIgcng9IjgiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzM5ZmYxNCIgc3Ryb2tlLXdpZHRoPSIzIi8+CiAgPGxpbmUgeDE9IjM2IiB5MT0iMzIiIHgyPSI0NCIgeTI9IjMyIiBzdHJva2U9IiMzOWZmMTQiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgPHJlY3QgeD0iOCIgeT0iNTIiIHdpZHRoPSIyOCIgaGVpZ2h0PSIxNiIgcng9IjgiIGZpbGw9IiMzOWZmMTQiIG9wYWNpdHk9IjAuODUiLz4KICA8cmVjdCB4PSI0NCIgeT0iNTIiIHdpZHRoPSIyOCIgaGVpZ2h0PSIxNiIgcng9IjgiIGZpbGw9IiMzOWZmMTQiIG9wYWNpdHk9IjAuNTUiLz4KICA8bGluZSB4MT0iMzYiIHkxPSI2MCIgeDI9IjQ0IiB5Mj0iNjAiIHN0cm9rZT0iIzM5ZmYxNCIgc3Ryb2tlLXdpZHRoPSIzIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICA8bGluZSB4MT0iMzQiIHkxPSI0MCIgeDI9IjM0IiB5Mj0iNTIiIHN0cm9rZT0iIzM5ZmYxNCIgc3Ryb2tlLXdpZHRoPSIxLjUiIHN0cm9rZS1kYXNoYXJyYXk9IjMgMiIgb3BhY2l0eT0iMC41Ii8+CiAgPGxpbmUgeDE9IjQ2IiB5MT0iNDAiIHgyPSI0NiIgeTI9IjUyIiBzdHJva2U9IiMzOWZmMTQiIHN0cm9rZS13aWR0aD0iMS41IiBzdHJva2UtZGFzaGFycmF5PSIzIDIiIG9wYWNpdHk9IjAuNSIvPgo8L3N2Zz4=" width="52" height="52" alt="🔗" style="display:block;margin-bottom:2px"/></span>
+      <h3>分享便利性</h3>
+      <p>單一 .html 檔案可在任何瀏覽器完整開啟，無需 Markdown 渲染器或特定閱讀器</p>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 5: COMPARISON -->
+<section class="slide" id="slide-5" data-num="05">
+  <div class="section-header reveal">
+    <div class="section-eyebrow">全面對比</div>
+    <div class="section-title">HTML vs Markdown</div>
+  </div>
+
+  <div class="vs-container">
+    <div class="vs-col html-col reveal reveal-delay-1">
+      <div class="vs-col-title">⬡ HTML</div>
+      <div class="vs-col-sub">視覺 · 互動 · 豐富</div>
+      <ul class="vs-list">
+        <li><span class="dot"></span>SVG、Canvas、互動圖表</li>
+        <li><span class="dot"></span>CSS 自訂排版與樣式</li>
+        <li><span class="dot"></span>JavaScript 互動邏輯</li>
+        <li><span class="dot"></span>base64 內嵌圖片</li>
+        <li><span class="dot"></span>長文件導覽錨點</li>
+        <li><span class="dot"></span>豐富的跨平台渲染</li>
+        <li><span class="dot"></span>可執行的程式碼沙盒</li>
+      </ul>
+    </div>
+
+    <div class="vs-divider">
+      <div class="vs-badge">VS</div>
+    </div>
+
+    <div class="vs-col md-col reveal reveal-delay-2">
+      <div class="vs-col-title">⬡ Markdown</div>
+      <div class="vs-col-sub">簡潔 · 可編輯 · 輕量</div>
+      <ul class="vs-list">
+        <li><span class="dot"></span>語法簡潔易讀易寫</li>
+        <li><span class="dot"></span>任意文字編輯器可開啟</li>
+        <li><span class="dot"></span>Git diff 清晰可讀</li>
+        <li><span class="dot"></span>token 消耗較少</li>
+        <li><span class="dot"></span>版本控制友善</li>
+        <li><span class="dot"></span>可直接轉換多種格式</li>
+        <li><span class="dot"></span>適合資料處理管線</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 6: INTERACTIVE DEMO -->
+<section class="slide" id="slide-6" data-num="06" style="background: linear-gradient(135deg, #0a0a0f 60%, #0a0f1a);">
+  <div class="section-header reveal">
+    <div class="section-eyebrow">互動展示</div>
+    <div class="section-title">親眼見證<br>轉換過程</div>
+  </div>
+
+  <div class="reveal reveal-delay-1" style="max-width:1200px;margin:0 auto;width:100%;">
+    <!-- Slider Control -->
+    <div style="display:flex;align-items:center;gap:20px;margin-bottom:28px;">
+      <span style="font-family:'Space Mono',monospace;font-size:12px;color:var(--cyan);letter-spacing:2px;white-space:nowrap;">MARKDOWN</span>
+      <div style="position:relative;flex:1;">
+        <input type="range" id="mdSlider" min="0" max="100" value="0"
+          style="width:100%;-webkit-appearance:none;appearance:none;height:6px;border-radius:3px;outline:none;cursor:pointer;background:linear-gradient(to right,var(--cyan) 0%,var(--yellow) 100%);">
+      </div>
+      <span style="font-family:'Space Mono',monospace;font-size:12px;color:var(--yellow);letter-spacing:2px;white-space:nowrap;">HTML</span>
+    </div>
+
+    <!-- Label & percent -->
+    <div style="text-align:center;margin-bottom:20px;">
+      <span id="sliderLabel" style="font-family:'Space Mono',monospace;font-size:13px;color:rgba(255,255,255,0.45);letter-spacing:1px;">← 拖動滑桿，看 Markdown 如何變成可讀的 HTML →</span>
+    </div>
+
+    <!-- Two-panel demo -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:stretch;">
+      <!-- LEFT: Markdown raw -->
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px 28px;overflow:hidden;position:relative;">
+        <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--cyan);margin-bottom:16px;text-transform:uppercase;">原始 Markdown</div>
+        <pre id="mdRaw" style="font-family:'Space Mono',monospace;font-size:13px;line-height:1.8;color:rgba(240,240,240,0.75);white-space:pre-wrap;word-break:break-word;transition:opacity 0.3s;"></pre>
+      </div>
+
+      <!-- RIGHT: Rendered output (blended) -->
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px 28px;overflow:hidden;position:relative;">
+        <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--yellow);margin-bottom:16px;text-transform:uppercase;">渲染後 HTML</div>
+        <div id="htmlRendered" style="font-size:14px;line-height:1.8;transition:opacity 0.3s;"></div>
+      </div>
+    </div>
+
+    <!-- Overlay blend panel (the magic transition) -->
+  </div>
+
+  <style>
+    #mdSlider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      background: var(--white);
+      border: 3px solid var(--yellow);
+      box-shadow: 0 0 16px rgba(245,230,66,0.5);
+      cursor: pointer;
+      transition: box-shadow 0.2s;
+    }
+    #mdSlider::-webkit-slider-thumb:hover {
+      box-shadow: 0 0 24px rgba(245,230,66,0.8);
+    }
+    #mdSlider::-moz-range-thumb {
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      background: var(--white);
+      border: 3px solid var(--yellow);
+      box-shadow: 0 0 16px rgba(245,230,66,0.5);
+      cursor: pointer;
+    }
+
+    /* HTML rendered styles inside dark theme */
+    #htmlRendered h1 { font-family:'Syne',sans-serif; font-size:22px; font-weight:800; color:var(--yellow); margin-bottom:10px; line-height:1.2; }
+    #htmlRendered h2 { font-family:'Syne',sans-serif; font-size:17px; font-weight:700; color:var(--cyan); margin:16px 0 8px; border-left:3px solid var(--cyan); padding-left:10px; }
+    #htmlRendered p { color:rgba(240,240,240,0.8); margin-bottom:10px; font-size:14px; line-height:1.7; }
+    #htmlRendered ul { padding-left:20px; margin-bottom:12px; }
+    #htmlRendered li { color:rgba(240,240,240,0.7); margin-bottom:5px; font-size:14px; }
+    #htmlRendered li::marker { color:var(--pink); }
+    #htmlRendered strong { color:var(--white); font-weight:700; }
+    #htmlRendered em { color:var(--green); font-style:italic; }
+    #htmlRendered code { background:rgba(0,229,255,0.1); color:var(--cyan); padding:1px 6px; border-radius:4px; font-family:'Space Mono',monospace; font-size:12px; }
+    #htmlRendered blockquote { border-left:3px solid var(--pink); padding:10px 16px; background:rgba(255,62,165,0.07); border-radius:0 8px 8px 0; margin:12px 0; color:rgba(240,240,240,0.7); font-style:italic; }
+    #htmlRendered hr { border:none; border-top:1px solid var(--border); margin:16px 0; }
+    #htmlRendered a { color:var(--yellow); text-decoration:underline; }
+  </style>
+
+  <script>
+    (function() {
+      const mdContent = `# AI 輸出格式的革命
+
+## 為什麼 HTML 更勝一籌？
+
+在大 Context 時代，AI 產出的內容越來越長、越來越複雜。**Markdown** 雖然簡潔，卻有一個根本性的問題：它停留在*線性文字*的層次。
+
+## HTML 的核心優勢
+
+- 支援 SVG、Canvas、互動圖表
+- CSS 自訂排版與視覺風格
+- JavaScript 驅動的互動邏輯
+- \`base64\` 內嵌圖片，單檔完整呈現
+
+## 工程師怎麼說？
+
+> 「幾乎所有正式 Agent 輸出場景，HTML 都明顯更好。」
+> — Thariq Shihipar，Anthropic
+
+---
+
+結論很簡單：**讓 AI 輸出成為真正的多維度互動文件**。`;
+
+      // Simple Markdown → HTML parser
+      function parseMarkdown(md) {
+        return md
+          .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+          .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+          .replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>')
+          .replace(/^---$/gm, '<hr>')
+          .replace(/^\- (.+)$/gm, '<li>$1</li>')
+          .replace(/(<li>.*<\/li>\n?)+/gs, (m) => '<ul>' + m + '</ul>')
+          .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+          .replace(/\*(.+?)\*/g, '<em>$1</em>')
+          .replace(/`([^`]+)`/g, '<code>$1</code>')
+          .replace(/^(?!<[hbu]|<li|<hr|<block)(.+)$/gm, '<p>$1</p>')
+          .replace(/<p><\/p>/g, '')
+          .trim();
+      }
+
+      const htmlFull = parseMarkdown(mdContent);
+
+      const slider = document.getElementById('mdSlider');
+      const mdRaw = document.getElementById('mdRaw');
+      const htmlRendered = document.getElementById('htmlRendered');
+      const sliderLabel = document.getElementById('sliderLabel');
+
+      function update(val) {
+        const pct = val / 100;
+        // Raw panel: full at 0%, fades out by 100%
+        mdRaw.style.opacity = 1 - pct;
+        // Rendered panel: invisible at 0%, full at 100%
+        htmlRendered.style.opacity = pct;
+
+        // Show different content based on progress
+        if (pct < 0.05) {
+          sliderLabel.textContent = '← 原始 Markdown 原始碼';
+        } else if (pct < 0.5) {
+          sliderLabel.textContent = '渲染中... ' + Math.round(pct * 100) + '%';
+        } else if (pct < 0.95) {
+          sliderLabel.textContent = '格式轉換中... ' + Math.round(pct * 100) + '%';
+        } else {
+          sliderLabel.textContent = '完成！這就是 HTML 帶來的可讀性 →';
+        }
+
+        // Tint border colors
+        const mdPanel = mdRaw.parentElement;
+        const htmlPanel = htmlRendered.parentElement;
+        mdPanel.style.borderColor = `rgba(0,229,255,${0.3 - pct * 0.2})`;
+        htmlPanel.style.borderColor = `rgba(245,230,66,${0.08 + pct * 0.3})`;
+      }
+
+      // Initialize content
+      mdRaw.textContent = mdContent;
+      htmlRendered.innerHTML = htmlFull;
+      update(0);
+
+      slider.addEventListener('input', () => update(Number(slider.value)));
+    })();
+  </script>
+</section>
+
+<!-- SLIDE 6→7: COMMUNITY -->
+<section class="slide" id="slide-7" data-num="07">
+  <div class="section-header reveal">
+    <div class="section-eyebrow">社群反應</div>
+    <div class="section-title">兩大<br>陣營觀點</div>
+  </div>
+
+  <div class="community-grid">
+    <div class="camp camp-pro reveal reveal-delay-1">
+      <div class="camp-title">✅ 支持陣營</div>
+      <div class="camp-items">
+        <div class="camp-item"><span class="icon">🚀</span>AI 工程師社群快速形成共識</div>
+        <div class="camp-item"><span class="icon">💬</span>「幾乎所有正式 Agent 輸出場景 HTML 都更好」</div>
+        <div class="camp-item"><span class="icon">🔥</span>Hacker News 熱榜持續討論</div>
+        <div class="camp-item"><span class="icon">✍️</span>Medium、技術部落格大量跟進報導</div>
+        <div class="camp-item"><span class="icon">🏢</span>多家 AI 公司測試切換輸出格式</div>
+      </div>
+    </div>
+
+    <div class="camp camp-con reveal reveal-delay-2">
+      <div class="camp-title">⚠️ 保留意見</div>
+      <div class="camp-items">
+        <div class="camp-item"><span class="icon">✏️</span>Markdown 可編輯性無可取代</div>
+        <div class="camp-item"><span class="icon">🔍</span>HTML diff 雜亂，不利 code review</div>
+        <div class="camp-item"><span class="icon">⚙️</span>RAG 資料處理管線仍偏好 Markdown</div>
+        <div class="camp-item"><span class="icon">📁</span>版本控制工作流程存在疑慮</div>
+        <div class="camp-item"><span class="icon">🧑‍💼</span>非技術使用者學習門檻較高</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="quote-block reveal">
+    <div class="quote-text">
+      「Markdown 正在成為『沒有人讀 AI 產出內容』的原因之一——它讓 AI 的輸出停留在線性文字的層次，而 HTML 能讓 AI 輸出成為真正的多維度互動文件。」
+    </div>
+    <div class="quote-attr">— Thariq Shihipar，Anthropic Claude Code 工程師</div>
+  </div>
+</section>
+
+<!-- SLIDE 8: RAG -->
+<section class="slide" id="slide-8" data-num="08">
+  <div class="section-header reveal">
+    <div class="section-eyebrow">RAG 場景分析</div>
+    <div class="section-title">並非<br>零和競爭</div>
+  </div>
+
+  <div class="rag-split">
+    <div class="rag-card rag-html reveal reveal-delay-1">
+      <div class="rag-icon"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MCA4MCIgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIj4KICA8cGF0aCBkPSJNMjQsMTIgTDU2LDEyIEw1Niw0MiBRNTYsNjAgNDAsNjYgUTI0LDYwIDI0LDQyIFoiIGZpbGw9IiNmNWU2NDIiIG9wYWNpdHk9IjAuODUiLz4KICA8cGF0aCBkPSJNMjQsMTggUTE0LDE4IDE0LDMwIFExNCw0MiAyNiw0NCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZjVlNjQyIiBzdHJva2Utd2lkdGg9IjMiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogIDxwYXRoIGQ9Ik01NiwxOCBRNjYsMTggNjYsMzAgUTY2LDQyIDU0LDQ0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmNWU2NDIiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgPHJlY3QgeD0iMzQiIHk9IjY2IiB3aWR0aD0iMTIiIGhlaWdodD0iNiIgcng9IjEiIGZpbGw9IiNmNWU2NDIiIG9wYWNpdHk9IjAuNyIvPgogIDxyZWN0IHg9IjI4IiB5PSI3MiIgd2lkdGg9IjI0IiBoZWlnaHQ9IjUiIHJ4PSIyLjUiIGZpbGw9IiNmNWU2NDIiIG9wYWNpdHk9IjAuOSIvPgogIDx0ZXh0IHg9IjQwIiB5PSI0NCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjIiIGZvbnQtd2VpZ2h0PSJib2xkIiBmaWxsPSIjMGEwYTBmIj4xPC90ZXh0Pgo8L3N2Zz4=" width="52" height="52" alt="🏆" style="display:inline-block;vertical-align:middle"/></div>
+      <div class="rag-label">展示端輸出</div>
+      <div class="rag-title">HTML 明顯勝出</div>
+      <div class="rag-desc">互動性、視覺豐富度、可讀性，在面向用戶的最終呈現中全面領先</div>
+    </div>
+
+    <div class="rag-card rag-md reveal reveal-delay-2">
+      <div class="rag-icon"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MCA4MCIgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIj4KICA8cmVjdCB4PSIxOCIgeT0iMTYiIHdpZHRoPSI0NCIgaGVpZ2h0PSI1NCIgcng9IjQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzAwZTVmZiIgc3Ryb2tlLXdpZHRoPSIyLjUiIG9wYWNpdHk9IjAuOCIvPgogIDxyZWN0IHg9IjMwIiB5PSIxMCIgd2lkdGg9IjIwIiBoZWlnaHQ9IjEyIiByeD0iNCIgZmlsbD0iIzAwZTVmZiIgb3BhY2l0eT0iMC43Ii8+CiAgPGxpbmUgeDE9IjI4IiB5MT0iMzQiIHgyPSI1MiIgeTI9IjM0IiBzdHJva2U9IiMwMGU1ZmYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBvcGFjaXR5PSIwLjgiLz4KICA8bGluZSB4MT0iMjgiIHkxPSI0NCIgeDI9IjUyIiB5Mj0iNDQiIHN0cm9rZT0iIzAwZTVmZiIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIG9wYWNpdHk9IjAuNiIvPgogIDxsaW5lIHgxPSIyOCIgeTE9IjU0IiB4Mj0iNDQiIHkyPSI1NCIgc3Ryb2tlPSIjMDBlNWZmIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgb3BhY2l0eT0iMC40Ii8+Cjwvc3ZnPg==" width="52" height="52" alt="📋" style="display:inline-block;vertical-align:middle"/></div>
+      <div class="rag-label">資料處理管線</div>
+      <div class="rag-title">Markdown 仍有優勢</div>
+      <div class="rag-desc">解析、轉換、索引、RAG 資料處理管線中，Markdown 結構更簡潔高效</div>
+    </div>
+  </div>
+
+  <div class="rag-conclusion reveal">
+    根據 2026 年 benchmark 研究：<strong>HTML 與 Markdown 適用場景不同，應依需求選擇，而非非此即彼</strong>
+  </div>
+</section>
+
+<!-- SLIDE 9: WHEN TO USE -->
+<section class="slide" id="slide-9" data-num="09">
+  <div class="section-header reveal">
+    <div class="section-eyebrow">實用指南</div>
+    <div class="section-title">何時選<br>哪種格式？</div>
+  </div>
+
+  <div class="when-grid">
+    <div class="when-col when-html reveal reveal-delay-1">
+      <div class="when-col-title">⚡ 選 HTML 的時機</div>
+      <div class="when-items">
+        <div class="when-item"><span class="emoji">🤖</span> AI Agent 最終輸出報告</div>
+        <div class="when-item"><span class="emoji">📊</span> 需要視覺化或圖表展示</div>
+        <div class="when-item"><span class="emoji">👥</span> 分享給非技術人員閱讀</div>
+        <div class="when-item"><span class="emoji">📱</span> 互動式儀表板應用</div>
+        <div class="when-item"><span class="emoji">📖</span> 長篇多章節複雜文件</div>
+      </div>
+    </div>
+
+    <div class="when-col when-md reveal reveal-delay-2">
+      <div class="when-col-title">📝 選 Markdown 的時機</div>
+      <div class="when-items">
+        <div class="when-item"><span class="emoji">🌿</span> 需要 Git 版本控制管理</div>
+        <div class="when-item"><span class="emoji">⚙️</span> RAG 資料處理管線使用</div>
+        <div class="when-item"><span class="emoji">👩‍💻</span> 開發者協作技術文件</div>
+        <div class="when-item"><span class="emoji">🔄</span> 需要多種格式互相轉換</div>
+        <div class="when-item"><span class="emoji">✏️</span> 純文字即時編輯場景</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 10: CONCLUSION -->
+<section class="slide" id="slide-10" data-num="10">
+  <div class="conclusion-title">
+    大 Context 時代<br>
+    <span style="color: var(--yellow);">HTML</span> 已是<br>
+    最佳選擇 🎯
+  </div>
+  <p class="conclusion-sub">
+    別讓 Markdown 成為沒有人閱讀 AI 輸出的原因。<br>
+    在正確場景選用 HTML，讓 AI 輸出成為真正的多維度互動文件。
+  </p>
+  <div class="conclusion-pill">The Unreasonable Effectiveness of HTML</div>
+  <div class="credit">
+    整理自 ABMedia｜Grenade｜Tenten｜電腦王阿達｜Epsilla Blog<br>
+    原作：Thariq Shihipar，Anthropic · 2026-05
+  </div>
+</section>
+
+<script>
+  // Build nav dots
+  const slides = document.querySelectorAll('.slide');
+  const dotsContainer = document.getElementById('navDots');
+  slides.forEach((slide, i) => {
+    const dot = document.createElement('button');
+    dot.className = 'nav-dot' + (i === 0 ? ' active' : '');
+    dot.title = `Slide ${i + 1}`;
+    dot.addEventListener('click', () => {
+      slide.scrollIntoView({ behavior: 'smooth' });
+    });
+    dotsContainer.appendChild(dot);
+  });
+
+  // Progress bar + active dot
+  function updateProgress() {
+    const scrollTop = window.scrollY;
+    const docHeight = document.body.scrollHeight - window.innerHeight;
+    const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+    document.getElementById('progressBar').style.width = progress + '%';
+
+    // Update active dot
+    const dots = document.querySelectorAll('.nav-dot');
+    slides.forEach((slide, i) => {
+      const rect = slide.getBoundingClientRect();
+      if (rect.top <= window.innerHeight / 2 && rect.bottom >= window.innerHeight / 2) {
+        dots.forEach(d => d.classList.remove('active'));
+        dots[i].classList.add('active');
+      }
+    });
+  }
+
+  // Intersection observer for reveal animations
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  window.addEventListener('scroll', updateProgress, { passive: true });
+  updateProgress();
+</script>
+</body>
+</html>

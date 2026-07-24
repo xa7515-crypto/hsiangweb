@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Magic Workshop</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --cyan: #22d3ee;
+      --cyan-light: #67e8f9;
+      --purple: #9333ea;
+      --purple-light: #c084fc;
+      --slate: #cbd5e1;
+      --dark-navy: #0f172a;
+      --bg: #050816;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: white;
+      font-family: 'Noto Sans TC', sans-serif;
+      min-height: 100vh;
+    }
+
+    /* ── Top Nav ── */
+    .top-nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 999;
+      display: flex;
+      align-items: center;
+      padding: 0 8%;
+      height: 64px;
+      background: rgba(5,8,22,0.75);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+
+    .home-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 20px;
+      border-radius: 999px;
+      background: rgba(34,211,238,0.08);
+      border: 1px solid rgba(34,211,238,0.3);
+      color: var(--cyan-light);
+      font-size: 14px;
+      font-weight: 700;
+      font-family: 'Noto Sans TC', sans-serif;
+      text-decoration: none;
+      letter-spacing: 0.04em;
+      transition: background 0.25s, border-color 0.25s, box-shadow 0.25s, transform 0.2s;
+    }
+
+    .home-btn:hover {
+      background: rgba(34,211,238,0.18);
+      border-color: var(--cyan);
+      box-shadow: 0 0 20px rgba(34,211,238,0.25);
+      transform: translateY(-1px);
+    }
+
+    .home-btn svg {
+      width: 16px;
+      height: 16px;
+      stroke: var(--cyan-light);
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      flex-shrink: 0;
+    }
+
+    /* ── Particle Canvas ── */
+    #particles {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Section ── */
+    .ai-lab-section {
+      position: relative;
+      padding: 164px 8% 100px;
+      background:
+        radial-gradient(circle at top left, #1e3a8a33, transparent 60%),
+        radial-gradient(circle at bottom right, #9333ea33, transparent 60%),
+        var(--bg);
+      overflow: hidden;
+      z-index: 1;
+    }
+
+    .ai-bg-glow {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 600px 400px at 15% 20%, #1e3a8a22, transparent),
+        radial-gradient(ellipse 500px 500px at 85% 80%, #9333ea22, transparent);
+      pointer-events: none;
+    }
+
+    /* Grid overlay */
+    .ai-lab-section::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(34,211,238,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(34,211,238,0.04) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+    }
+
+    /* ── Header ── */
+    .section-header {
+      text-align: center;
+      margin-bottom: 80px;
+      position: relative;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 10px 20px;
+      border-radius: 999px;
+      background: #06b6d422;
+      border: 1px solid #22d3ee55;
+      color: var(--cyan-light);
+      margin-bottom: 24px;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      animation: fadeDown 0.8s ease both;
+    }
+
+    .section-header h2 {
+      font-size: clamp(40px, 7vw, 72px);
+      line-height: 1.15;
+      font-weight: 900;
+      color: white;
+      animation: fadeDown 0.8s 0.1s ease both;
+    }
+
+    .section-header h2 span {
+      background: linear-gradient(to right, var(--cyan-light), var(--purple-light));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .section-header p {
+      color: var(--slate);
+      margin-top: 22px;
+      font-size: clamp(16px, 2vw, 20px);
+      animation: fadeDown 0.8s 0.2s ease both;
+    }
+
+    /* ── Prompt Library ── */
+    .prompt-library {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 80px;
+    }
+
+    .magic-card {
+      width: 100%;
+      max-width: 860px;
+      padding: 44px 48px;
+      border-radius: 32px;
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: 0 0 60px rgba(34,211,238,0.12), inset 0 1px 0 rgba(255,255,255,0.08);
+      animation: fadeUp 0.9s 0.3s ease both;
+    }
+
+    .magic-icon {
+      font-size: 52px;
+      margin-bottom: 18px;
+      display: block;
+    }
+
+    .magic-card h3 {
+      font-size: clamp(24px, 3.5vw, 38px);
+      font-weight: 900;
+      margin-bottom: 30px;
+      background: linear-gradient(to right, white, var(--cyan-light));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .prompt-box {
+      padding: 22px 26px;
+      border-radius: 20px;
+      background: var(--dark-navy);
+      margin-bottom: 16px;
+      border: 1px solid rgba(255,255,255,0.08);
+      cursor: pointer;
+      transition: border-color 0.3s, box-shadow 0.3s, transform 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .prompt-box::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(34,211,238,0.05), transparent);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .prompt-box:hover::before { opacity: 1; }
+    .prompt-box:hover {
+      border-color: rgba(34,211,238,0.4);
+      box-shadow: 0 0 24px rgba(34,211,238,0.15);
+      transform: translateX(4px);
+    }
+
+    .prompt-box.copied {
+      border-color: var(--cyan);
+      box-shadow: 0 0 32px rgba(34,211,238,0.35);
+    }
+
+    .prompt-box p {
+      font-size: clamp(14px, 1.8vw, 18px);
+      line-height: 1.8;
+      color: #e2e8f0;
+      position: relative;
+    }
+
+    .prompt-copy-hint {
+      font-size: 11px;
+      color: var(--cyan-light);
+      opacity: 0;
+      position: absolute;
+      top: 12px;
+      right: 16px;
+      transition: opacity 0.3s;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+    }
+
+    .prompt-box:hover .prompt-copy-hint { opacity: 0.7; }
+
+    .prompt-box.copied .prompt-copy-hint { opacity: 1; content: '已複製 ✓'; }
+
+    .card-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-top: 24px;
+      flex-wrap: wrap;
+    }
+
+    .magic-card button {
+      padding: 16px 32px;
+      border: none;
+      border-radius: 16px;
+      background: linear-gradient(to right, var(--cyan), var(--purple));
+      color: white;
+      font-weight: 700;
+      font-size: 15px;
+      cursor: pointer;
+      font-family: 'Noto Sans TC', sans-serif;
+      transition: opacity 0.2s, transform 0.15s, box-shadow 0.3s;
+      box-shadow: 0 4px 24px rgba(34,211,238,0.2);
+    }
+
+    .magic-card button:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(34,211,238,0.35);
+    }
+
+    .magic-card button:active { transform: scale(0.97); }
+
+    .copy-feedback {
+      font-size: 13px;
+      color: var(--cyan-light);
+      opacity: 0;
+      transition: opacity 0.3s;
+      font-weight: 700;
+    }
+
+    .copy-feedback.show { opacity: 1; }
+
+    /* ── Tools Grid ── */
+    .ai-tools-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 24px;
+    }
+
+    .tool-card {
+      padding: 36px 32px;
+      border-radius: 28px;
+      background: rgba(255,255,255,0.04);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.08);
+      transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.4s, border-color 0.3s;
+      animation: fadeUp 0.8s ease both;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .tool-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 50% 0%, rgba(34,211,238,0.08), transparent 60%);
+      opacity: 0;
+      transition: opacity 0.4s;
+    }
+
+    .tool-card:hover {
+      transform: translateY(-12px);
+      box-shadow: 0 0 50px rgba(34,211,238,0.22);
+      border-color: rgba(34,211,238,0.25);
+    }
+
+    .tool-card:hover::after { opacity: 1; }
+
+    .tool-card:nth-child(1) { animation-delay: 0.1s; }
+    .tool-card:nth-child(2) { animation-delay: 0.15s; }
+    .tool-card:nth-child(3) { animation-delay: 0.2s; }
+    .tool-card:nth-child(4) { animation-delay: 0.25s; }
+    .tool-card:nth-child(5) { animation-delay: 0.3s; }
+    .tool-card:nth-child(6) { animation-delay: 0.35s; }
+
+    .tool-icon {
+      font-size: 52px;
+      margin-bottom: 20px;
+      display: block;
+      position: relative;
+      z-index: 1;
+    }
+
+    .tool-card h4 {
+      font-size: clamp(20px, 2.5vw, 28px);
+      font-weight: 900;
+      margin-bottom: 10px;
+      color: white;
+      position: relative;
+      z-index: 1;
+    }
+
+    .tool-card p {
+      color: var(--slate);
+      line-height: 1.8;
+      font-size: 14px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Tool card accent colors */
+    .tool-card.chatgpt { --accent: #10b981; }
+    .tool-card.gamma   { --accent: #6366f1; }
+    .tool-card.canva   { --accent: #f59e0b; }
+    .tool-card.notion  { --accent: #e5e7eb; }
+    .tool-card.suno    { --accent: #ec4899; }
+    .tool-card.leonardo { --accent: #8b5cf6; }
+
+    .tool-card:hover { box-shadow: 0 0 50px color-mix(in srgb, var(--accent, #22d3ee) 40%, transparent); }
+
+    /* ── Footer Quote ── */
+    .ai-footer-quote {
+      text-align: center;
+      margin-top: 100px;
+      padding: 60px 20px 0;
+      position: relative;
+    }
+
+    .ai-footer-quote::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 120px;
+      height: 1px;
+      background: linear-gradient(to right, transparent, var(--cyan-light), transparent);
+    }
+
+    .ai-footer-quote p {
+      font-size: clamp(18px, 3vw, 32px);
+      font-weight: 900;
+      line-height: 1.8;
+      background: linear-gradient(to right, var(--cyan-light), var(--purple-light));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* ── Animations ── */
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 640px) {
+      .ai-lab-section { padding: 80px 6% 60px; }
+      .magic-card { padding: 28px 24px; }
+      .tool-card { padding: 28px 24px; }
+      .ai-tools-grid { grid-template-columns: 1fr 1fr; gap: 16px; }
+    }
+
+    @media (max-width: 420px) {
+      .ai-tools-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="particles"></canvas>
+
+<nav class="top-nav">
+  <a href="index.html" class="home-btn">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H5a1 1 0 01-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg>
+    回首頁
+  </a>
+</nav>
+
+<section class="ai-lab-section">
+  <div class="ai-bg-glow"></div>
+
+  <!-- Header -->
+  <div class="section-header">
+    <span class="tag">🪄 AI MAGIC WORKSHOP</span>
+    <h2>
+      別怕被 AI 取代，<br>
+      <span>來這裡學會駕馭 AI。</span>
+    </h2>
+    <p>把 AI 變成你的教學副駕、創意引擎與未來超能力。</p>
+  </div>
+
+  <!-- Prompt Library -->
+  <div class="prompt-library">
+    <div class="magic-card">
+      <span class="magic-icon">📚</span>
+      <h3>Prompt 咒語圖書館</h3>
+
+      <div class="prompt-box" onclick="copyPrompt(this, '請幫我生成一題符合國中數學素養導向的生活情境題。')">
+        <span class="prompt-copy-hint">點擊複製</span>
+        <p>「請幫我生成一題符合國中數學素養導向的生活情境題。」</p>
+      </div>
+
+      <div class="prompt-box" onclick="copyPrompt(this, '請將畢氏定理改寫成桌遊式教學活動。')">
+        <span class="prompt-copy-hint">點擊複製</span>
+        <p>「請將畢氏定理改寫成桌遊式教學活動。」</p>
+      </div>
+
+      <div class="prompt-box" onclick="copyPrompt(this, '請幫我設計一份適合高中生的 AI 倫理討論課，時間 50 分鐘。')">
+        <span class="prompt-copy-hint">點擊複製</span>
+        <p>「請幫我設計一份適合高中生的 AI 倫理討論課，時間 50 分鐘。」</p>
+      </div>
+
+      <div class="card-actions">
+        <button onclick="alert('更多咒語即將推出，敬請期待！✨')">✨ 一鍵複製咒語</button>
+        <span class="copy-feedback" id="copy-feedback">✓ 已複製到剪貼簿！</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI Tools -->
+  <div class="ai-tools-grid">
+    <div class="tool-card chatgpt">
+      <span class="tool-icon">🤖</span>
+      <h4>ChatGPT</h4>
+      <p>教案生成・題目設計・教學靈感</p>
+    </div>
+    <div class="tool-card gamma">
+      <span class="tool-icon">📊</span>
+      <h4>Gamma</h4>
+      <p>AI 簡報生成・視覺化排版</p>
+    </div>
+    <div class="tool-card canva">
+      <span class="tool-icon">🎨</span>
+      <h4>Canva AI</h4>
+      <p>教材美編・海報設計・社群視覺</p>
+    </div>
+    <div class="tool-card notion">
+      <span class="tool-icon">📝</span>
+      <h4>Notion AI</h4>
+      <p>課程整理・備課規劃・知識庫</p>
+    </div>
+    <div class="tool-card suno">
+      <span class="tool-icon">🎵</span>
+      <h4>Suno</h4>
+      <p>AI 音樂生成・課堂配樂</p>
+    </div>
+    <div class="tool-card leonardo">
+      <span class="tool-icon">🖼️</span>
+      <h4>Leonardo AI</h4>
+      <p>網頁圖像生成・未來感視覺創作</p>
+    </div>
+  </div>
+
+  <!-- Course Link -->
+  <div class="ai-footer-quote" style="margin-top: 60px;">
+    <a href="c-1.html" style="font-size: clamp(20px, 3.5vw, 36px); font-weight: 900; background: linear-gradient(to right, var(--cyan-light), var(--purple-light)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; text-decoration: underline;">AI 創作工具課程</a>
+  </div>
+
+  <!-- Footer -->
+  <div class="ai-footer-quote">
+    <p>
+      「AI 不會取代老師，<br>
+      但懂 AI 的老師，將重新定義未來教育。」 🚀
+    </p>
+  </div>
+</section>
+
+<script>
+  /* ── Particle System ── */
+  const canvas = document.getElementById('particles');
+  const ctx = canvas.getContext('2d');
+  let particles = [];
+
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  function randomBetween(a, b) { return a + Math.random() * (b - a); }
+
+  for (let i = 0; i < 80; i++) {
+    particles.push({
+      x: Math.random() * window.innerWidth,
+      y: Math.random() * window.innerHeight,
+      r: randomBetween(0.5, 2),
+      dx: randomBetween(-0.2, 0.2),
+      dy: randomBetween(-0.15, -0.05),
+      alpha: randomBetween(0.2, 0.8),
+      color: Math.random() > 0.5 ? '34,211,238' : '192,132,252'
+    });
+  }
+
+  function animateParticles() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${p.color},${p.alpha})`;
+      ctx.fill();
+      p.x += p.dx;
+      p.y += p.dy;
+      if (p.y < -5) { p.y = canvas.height + 5; p.x = Math.random() * canvas.width; }
+      if (p.x < -5) p.x = canvas.width + 5;
+      if (p.x > canvas.width + 5) p.x = -5;
+    });
+    requestAnimationFrame(animateParticles);
+  }
+  animateParticles();
+
+  /* ── Copy Prompt ── */
+  function copyPrompt(el, text) {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(text).then(() => {
+        el.classList.add('copied');
+        const hint = el.querySelector('.prompt-copy-hint');
+        if (hint) hint.textContent = '已複製 ✓';
+
+        const fb = document.getElementById('copy-feedback');
+        fb.classList.add('show');
+
+        setTimeout(() => {
+          el.classList.remove('copied');
+          if (hint) hint.textContent = '點擊複製';
+          fb.classList.remove('show');
+        }, 2000);
+      });
+    }
+  }
+</script>
+</body>
+</html>

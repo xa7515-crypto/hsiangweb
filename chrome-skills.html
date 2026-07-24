@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chrome Skills：用 AI 指令一鍵自動化</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0F1115;
+    --surface:#161A21;
+    --surface-2:#1D222B;
+    --line:#2A2E37;
+    --text:#ECEEF1;
+    --text-dim:#9AA1AC;
+    --text-faint:#5C636F;
+    --blue:#5B8DF6;
+    --violet:#B26BF2;
+    --pink:#F2709C;
+    --grad: linear-gradient(90deg, var(--blue), var(--violet), var(--pink));
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Noto Sans TC','Space Grotesk',sans-serif;
+    line-height:1.7;
+    overflow-x:hidden;
+  }
+  ::selection{background:var(--violet);color:#fff;}
+  ::-webkit-scrollbar{width:10px;}
+  ::-webkit-scrollbar-track{background:var(--bg);}
+  ::-webkit-scrollbar-thumb{background:var(--line);border-radius:6px;}
+  ::-webkit-scrollbar-thumb:hover{background:var(--text-faint);}
+
+  a{color:inherit;}
+  .eyebrow{
+    font-family:'JetBrains Mono',monospace;
+    font-size:.72rem;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--text-dim);
+    display:inline-flex;align-items:center;gap:.5em;
+  }
+  .eyebrow::before{
+    content:"";
+    width:6px;height:6px;border-radius:50%;
+    background:var(--grad);
+    flex:none;
+  }
+
+  h1,h2,h3{font-family:'Space Grotesk','Noto Sans TC',sans-serif;font-weight:700;letter-spacing:-.01em;}
+
+  /* ---------- top loading bar ---------- */
+  #loadbar{
+    position:fixed;top:0;left:0;height:3px;width:0%;
+    background:var(--grad);
+    z-index:100;
+    transition:width .08s linear;
+  }
+
+  /* ---------- browser chrome header ---------- */
+  #chrome-frame{
+    position:fixed;top:0;left:0;right:0;
+    z-index:90;
+    background:rgba(19,22,28,.86);
+    backdrop-filter:blur(14px) saturate(140%);
+    -webkit-backdrop-filter:blur(14px) saturate(140%);
+    border-bottom:1px solid var(--line);
+  }
+  .chrome-topline{
+    display:flex;align-items:center;gap:14px;
+    padding:10px 20px 8px;
+    max-width:1200px;margin:0 auto;
+  }
+  .dots{display:flex;gap:6px;flex:none;}
+  .dots span{width:10px;height:10px;border-radius:50%;background:var(--surface-2);border:1px solid var(--line);}
+  .dots span:nth-child(1){background:#F2709C55;}
+  .dots span:nth-child(2){background:#F2C97055;}
+  .dots span:nth-child(3){background:#7CE3A855;}
+
+  .tabstrip{
+    display:flex;gap:2px;overflow-x:auto;flex:1;
+    scrollbar-width:none;
+  }
+  .tabstrip::-webkit-scrollbar{display:none;}
+  .tabstrip button{
+    all:unset;cursor:pointer;
+    font-family:'JetBrains Mono',monospace;
+    font-size:.68rem;letter-spacing:.02em;
+    color:var(--text-faint);
+    padding:6px 12px;
+    border-radius:8px 8px 0 0;
+    white-space:nowrap;
+    border-bottom:2px solid transparent;
+    transition:color .2s, background .2s, border-color .2s;
+  }
+  .tabstrip button:hover{color:var(--text-dim);background:var(--surface);}
+  .tabstrip button.active{
+    color:var(--text);
+    background:var(--surface);
+    border-bottom:2px solid var(--violet);
+  }
+
+  .addressbar{
+    max-width:1200px;margin:0 auto;
+    padding:0 20px 12px;
+    display:flex;align-items:center;gap:10px;
+  }
+  .addressbar .pill{
+    display:flex;align-items:center;gap:10px;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:999px;
+    padding:7px 16px;
+    flex:1;
+    min-width:0;
+  }
+  .addressbar .lock{color:#7CE3A8;font-size:.8rem;flex:none;}
+  .addressbar .url{
+    font-family:'JetBrains Mono',monospace;
+    font-size:.82rem;
+    color:var(--text-dim);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .addressbar .url b{color:var(--text);font-weight:500;}
+  .addressbar .star{color:var(--text-faint);font-size:.9rem;flex:none;}
+
+  /* ---------- side progress rail (desktop) ---------- */
+  #rail{
+    position:fixed;right:22px;top:50%;transform:translateY(-50%);
+    z-index:80;
+    display:flex;flex-direction:column;gap:14px;
+    align-items:flex-end;
+  }
+  #rail .dot-row{display:flex;align-items:center;gap:10px;cursor:pointer;}
+  #rail .label{
+    font-family:'JetBrains Mono',monospace;
+    font-size:.68rem;color:var(--text-faint);
+    opacity:0;transform:translateX(6px);
+    transition:opacity .2s, transform .2s;
+    white-space:nowrap;
+  }
+  #rail .dot-row:hover .label{opacity:1;transform:translateX(0);}
+  #rail .dot{
+    width:7px;height:7px;border-radius:50%;
+    background:var(--line);
+    transition:all .25s;
+    flex:none;
+  }
+  #rail .dot-row.active .dot{
+    background:var(--violet);
+    box-shadow:0 0 0 4px rgba(178,107,242,.15);
+    transform:scale(1.3);
+  }
+  #rail .dot-row.active .label{opacity:1;color:var(--text-dim);transform:translateX(0);}
+
+  /* ---------- layout sections ---------- */
+  main{padding-top:96px;}
+  section{
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    padding:64px 8vw;
+    scroll-margin-top:96px;
+    position:relative;
+    border-bottom:1px solid var(--line);
+  }
+  .inner{max-width:980px;margin:0 auto;width:100%;}
+
+  /* ---------- hero ---------- */
+  #hero{min-height:calc(100vh - 96px);align-items:flex-start;}
+  #hero .inner{max-width:1040px;}
+  #hero .chip{
+    display:inline-block;
+    font-family:'JetBrains Mono',monospace;
+    font-size:.75rem;color:var(--text-dim);
+    border:1px solid var(--line);
+    padding:6px 14px;border-radius:999px;
+    margin-bottom:28px;
+  }
+  #hero h1{
+    font-size:clamp(2.6rem,7vw,5.4rem);
+    line-height:1.05;
+    margin:6px 0 26px;
+  }
+  #hero h1 .grad{
+    background:var(--grad);
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+  #hero p.sub{
+    font-size:clamp(1.05rem,2vw,1.35rem);
+    color:var(--text-dim);
+    max-width:640px;
+    margin-bottom:40px;
+  }
+  .demo-bar{
+    display:flex;align-items:center;gap:10px;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:14px 18px;
+    max-width:620px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:.9rem;
+    color:var(--text-dim);
+  }
+  .demo-bar .spark{color:var(--violet);}
+  .demo-bar .cursor{
+    display:inline-block;width:2px;height:1.1em;background:var(--violet);
+    animation:blink 1s step-end infinite;vertical-align:-2px;
+  }
+  @keyframes blink{50%{opacity:0;}}
+  .scrolldown{
+    margin-top:56px;
+    display:flex;align-items:center;gap:10px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:.72rem;color:var(--text-faint);
+    letter-spacing:.1em;text-transform:uppercase;
+  }
+  .scrolldown .line{width:1px;height:34px;background:linear-gradient(var(--text-faint),transparent);animation:down 1.6s ease-in-out infinite;}
+  @keyframes down{0%{transform:translateY(0);opacity:1;}100%{transform:translateY(14px);opacity:0;}}
+
+  /* ---------- chapter heading pattern ---------- */
+  .chnum{
+    font-family:'JetBrains Mono',monospace;
+    font-size:.8rem;color:var(--text-faint);
+    letter-spacing:.08em;
+  }
+  .chnum b{color:var(--violet);}
+  section h2{
+    font-size:clamp(1.9rem,4.2vw,3rem);
+    margin:10px 0 18px;
+  }
+  section > .inner > p.lead{
+    color:var(--text-dim);
+    font-size:1.05rem;
+    max-width:680px;
+    margin-bottom:36px;
+  }
+
+  /* ---------- generic grid cards ---------- */
+  .grid{display:grid;gap:16px;}
+  .grid.cols-3{grid-template-columns:repeat(3,1fr);}
+  .grid.cols-2{grid-template-columns:repeat(2,1fr);}
+  .card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:22px 22px 20px;
+    transition:border-color .2s, transform .2s;
+  }
+  .card:hover{border-color:var(--violet);transform:translateY(-2px);}
+  .card .k{
+    font-family:'JetBrains Mono',monospace;
+    font-size:.7rem;color:var(--text-faint);letter-spacing:.06em;
+    margin-bottom:10px;display:block;
+  }
+  .card h3{font-size:1.05rem;margin-bottom:8px;}
+  .card p{color:var(--text-dim);font-size:.92rem;}
+  .card ul{margin-top:10px;padding-left:1.1em;color:var(--text-dim);font-size:.88rem;}
+  .card ul li{margin-bottom:4px;}
+
+  /* ---------- step list (真實步驟才編號) ---------- */
+  .steps{list-style:none;counter-reset:step;display:flex;flex-direction:column;gap:0;}
+  .steps li{
+    counter-increment:step;
+    display:flex;gap:20px;
+    padding:18px 0;
+    border-top:1px solid var(--line);
+  }
+  .steps li:last-child{border-bottom:1px solid var(--line);}
+  .steps li::before{
+    content:counter(step);
+    font-family:'JetBrains Mono',monospace;
+    font-size:.85rem;
+    color:var(--violet);
+    background:var(--surface);
+    border:1px solid var(--line);
+    width:30px;height:30px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    flex:none;
+  }
+  .steps li .t{font-weight:500;margin-bottom:4px;}
+  .steps li .d{color:var(--text-dim);font-size:.9rem;}
+  .steps code{
+    font-family:'JetBrains Mono',monospace;
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    padding:2px 8px;border-radius:6px;
+    font-size:.85em;color:#7CE3A8;
+  }
+
+  /* ---------- code / flags block ---------- */
+  .flagbox{
+    display:flex;align-items:center;gap:10px;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:14px 18px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:.95rem;
+    margin:26px 0 36px;
+    max-width:520px;
+  }
+  .flagbox .lock{color:#7CE3A8;}
+  .flagbox b{color:var(--text);}
+  .flagbox span{color:var(--text-dim);}
+
+  /* ---------- 3 persona columns (ch7) ---------- */
+  .persona{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:18px;
+    padding:26px 24px;
+  }
+  .persona .icon{
+    width:40px;height:40px;border-radius:12px;
+    background:var(--grad);
+    display:flex;align-items:center;justify-content:center;
+    font-size:1.1rem;margin-bottom:16px;
+  }
+  .persona h3{font-size:1.15rem;margin-bottom:14px;}
+  .persona ul{list-style:none;display:flex;flex-direction:column;gap:9px;}
+  .persona ul li{
+    color:var(--text-dim);font-size:.9rem;
+    padding-left:16px;position:relative;
+  }
+  .persona ul li::before{
+    content:"";position:absolute;left:0;top:.55em;
+    width:6px;height:1px;background:var(--text-faint);
+  }
+
+  /* ---------- resource list (ch8) ---------- */
+  .reslist{display:flex;flex-direction:column;}
+  .reslist a{
+    display:flex;align-items:center;justify-content:space-between;
+    gap:16px;
+    padding:20px 4px;
+    border-top:1px solid var(--line);
+    text-decoration:none;
+    color:var(--text);
+  }
+  .reslist a:last-child{border-bottom:1px solid var(--line);}
+  .reslist a:hover .name{color:var(--violet);}
+  .reslist .name{font-weight:500;font-size:1.02rem;transition:color .2s;}
+  .reslist .desc{color:var(--text-dim);font-size:.85rem;margin-top:2px;}
+  .reslist .arrow{color:var(--text-faint);font-family:'JetBrains Mono',monospace;flex:none;}
+
+  /* ---------- accordion (ch9) ---------- */
+  .qa{border-top:1px solid var(--line);}
+  .qa-item{border-bottom:1px solid var(--line);}
+  .qa-item summary{
+    list-style:none;cursor:pointer;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:20px 2px;font-weight:500;
+  }
+  .qa-item summary::-webkit-details-marker{display:none;}
+  .qa-item summary .plus{
+    font-family:'JetBrains Mono',monospace;color:var(--text-faint);
+    transition:transform .2s;flex:none;margin-left:16px;
+  }
+  .qa-item[open] summary .plus{transform:rotate(45deg);}
+  .qa-item .body{color:var(--text-dim);font-size:.92rem;padding-bottom:20px;max-width:640px;}
+
+  /* ---------- closing ---------- */
+  #closing{align-items:center;text-align:center;border-bottom:none;}
+  #closing h2{font-size:clamp(2.1rem,5vw,3.4rem);}
+  #closing p{color:var(--text-dim);max-width:520px;margin:0 auto 34px;}
+  .cta{
+    display:inline-flex;align-items:center;gap:10px;
+    background:var(--grad);
+    color:#0F1115;font-weight:700;
+    padding:14px 30px;border-radius:999px;
+    font-size:1rem;
+    text-decoration:none;
+  }
+  footer{
+    padding:30px 8vw 50px;
+    display:flex;justify-content:space-between;align-items:center;
+    font-family:'JetBrains Mono',monospace;
+    font-size:.72rem;color:var(--text-faint);
+    flex-wrap:wrap;gap:10px;
+  }
+
+  /* ---------- feature 3-up in ch1 ---------- */
+  .feat{border-top:1px solid var(--line);padding-top:20px;}
+  .feat .tag{font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--violet);}
+
+  @media (max-width:900px){
+    .grid.cols-3{grid-template-columns:1fr 1fr;}
+  }
+  @media (max-width:700px){
+    #rail{display:none;}
+    main{padding-top:104px;}
+    section{padding:52px 6vw;scroll-margin-top:104px;}
+    .grid.cols-3, .grid.cols-2{grid-template-columns:1fr;}
+    .chrome-topline{padding:10px 14px 6px;}
+    .addressbar{padding:0 14px 10px;}
+    footer{padding:26px 6vw 40px;}
+  }
+  @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto;}
+    .scrolldown .line, .demo-bar .cursor{animation:none;}
+  }
+</style>
+</head>
+<body>
+
+<div id="loadbar"></div>
+
+<div id="chrome-frame">
+  <div class="chrome-topline">
+    <div class="dots"><span></span><span></span><span></span></div>
+    <div class="tabstrip" id="tabstrip"></div>
+  </div>
+  <div class="addressbar">
+    <div class="pill">
+      <span class="lock">🔒</span>
+      <span class="url" id="urlbar"><b>chrome-skills.guide</b>/認識</span>
+    </div>
+    <span class="star">☆</span>
+  </div>
+</div>
+
+<nav id="rail"></nav>
+
+<main>
+
+  <section id="hero">
+    <div class="inner">
+      <span class="chip">簡報導覽 · 捲動即翻頁</span>
+      <h1>Chrome Skills<br><span class="grad">用一句話，讓瀏覽器自己動手做</span></h1>
+      <p class="sub">Gemini 側邊欄的技能化功能，把「打開分頁、查資料、寫文件」這些重複動作，交給 AI 指令一鍵完成。這份簡報帶你從安裝、資源庫到教學實戰，一次搞懂 Chrome Skills。</p>
+      <div class="demo-bar"><span class="spark">✦</span> 幫我把這三個分頁的重點整理成一份摘要<span class="cursor"></span></div>
+      <div class="scrolldown"><span>向下捲動</span><div class="line"></div></div>
+    </div>
+  </section>
+
+  <section id="ch1">
+    <div class="inner">
+      <p class="chnum">第一章 / <b>認識 Chrome Skills</b></p>
+      <h2>什麼是 Chrome Skills？</h2>
+      <p class="lead">Chrome Skills 是內建於 Chrome 側邊欄「問問 Gemini」中的技能模組，讓 AI 不只回答問題，而是能理解情境、串連多個分頁，直接把任務做完。這代表 AI 從聊天機器人，正式進化成能執行工作的助手。</p>
+      <div class="grid cols-3">
+        <div class="feat"><div class="tag">01 · 技能化</div><h3 style="margin-top:8px;font-size:1.05rem;">Skills</h3><p style="color:var(--text-dim);font-size:.9rem;margin-top:6px;">把常做的任務包裝成可重複使用的指令模組，不用每次重新描述需求。</p></div>
+        <div class="feat"><div class="tag">02 · 情境理解</div><h3 style="margin-top:8px;font-size:1.05rem;">跨分頁操作</h3><p style="color:var(--text-dim);font-size:.9rem;margin-top:6px;">Gemini 能同時讀取多個分頁的內容，進行比對、彙整與交叉分析。</p></div>
+        <div class="feat"><div class="tag">03 · 深度整合</div><h3 style="margin-top:8px;font-size:1.05rem;">Gemini 深度整合</h3><p style="color:var(--text-dim);font-size:.9rem;margin-top:6px;">與 Google 帳號、Workspace 服務串接，減少在應用程式之間來回切換。</p></div>
+      </div>
+      <p style="margin-top:30px;color:var(--text-dim);font-size:.92rem;">適合情境：資料研究、內容撰寫、購物比價、教學備課——只要是「查、比、寫、整理」的重複性工作，都能交給 Skills 代勞。</p>
+    </div>
+  </section>
+
+  <section id="ch2">
+    <div class="inner">
+      <p class="chnum">第二章 / <b>啟動 Gemini 側邊欄</b></p>
+      <h2>開啟「問問 Gemini」</h2>
+      <p class="lead">在開始使用 Skills 之前，先確認側邊欄已經正確啟用，並完成與 Google 服務的連結。</p>
+      <div class="grid cols-2">
+        <div class="card">
+          <span class="k">設定</span>
+          <h3>基礎啟用</h3>
+          <ul>
+            <li>更新 Chrome 至最新版本</li>
+            <li>以 <code>Win + R</code> 快速開啟 Chrome</li>
+            <li>點擊工具列的側邊欄圖示，開啟「問問 Gemini」</li>
+            <li>發送一則測試訊息，確認功能正常回應</li>
+          </ul>
+        </div>
+        <div class="card">
+          <span class="k">整合</span>
+          <h3>服務串接</h3>
+          <ul>
+            <li>在設定中開啟「AI 創新功能」</li>
+            <li>連結 Google Workspace（文件、試算表、簡報）</li>
+            <li>啟用 YouTube 影片內容理解</li>
+            <li>啟用 Google 地圖資訊查詢</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="ch3">
+    <div class="inner">
+      <p class="chnum">第三章 / <b>Chrome Skills 安裝與啟用</b></p>
+      <h2>從 Flags 頁面打開開關</h2>
+      <p class="lead">Skills 目前是透過 Chrome 的實驗功能頁面啟用，步驟不多，但順序不能跳過。</p>
+      <div class="flagbox"><span class="lock">🔒</span><b>chrome://flags/#skills</b><span>— 貼上網址列直接前往</span></div>
+      <ol class="steps">
+        <li><div><div class="t">進入 Flags 頁面</div><div class="d">於網址列輸入 <code>chrome://flags/#skills</code> 並按下 Enter。</div></div></li>
+        <li><div><div class="t">啟用 Skills</div><div class="d">將對應項目的下拉選單從 Default 切換為 Enabled。</div></div></li>
+        <li><div><div class="t">重新啟動 Chrome</div><div class="d">頁面下方會出現「Relaunch」按鈕，點擊以套用設定。</div></div></li>
+        <li><div><div class="t">確認功能是否成功</div><div class="d">重啟後開啟側邊欄，若出現「Browse Skills」選項即代表啟用成功。</div></div></li>
+      </ol>
+    </div>
+  </section>
+
+  <section id="ch4">
+    <div class="inner">
+      <p class="chnum">第四章 / <b>官方 Skills 資源庫</b></p>
+      <h2>Browse Skills</h2>
+      <p class="lead">官方資源庫依用途分成六大類，每一類都內建多組現成技能，點一下就能套用。</p>
+      <div class="grid cols-3">
+        <div class="card"><span class="k">📚 Learning</span><h3>學習</h3><ul><li>深度提問</li><li>學習指南</li><li>文獻引用</li><li>Flash Cards</li><li>測驗產生器</li><li>Step by Step 教學</li></ul></div>
+        <div class="card"><span class="k">🔍 Research</span><h3>研究</h3><ul><li>搜集資料</li><li>比較分析</li><li>摘要整理</li></ul></div>
+        <div class="card"><span class="k">✍ Writing</span><h3>寫作</h3><ul><li>改寫文章</li><li>Email</li><li>公文</li><li>社群貼文</li><li>文案生成</li></ul></div>
+        <div class="card"><span class="k">🛒 Shopping</span><h3>購物</h3><ul><li>商品比較</li><li>推薦清單</li><li>規格分析</li></ul></div>
+        <div class="card"><span class="k">📖 Understand</span><h3>理解</h3><ul><li>解釋文章</li><li>名詞說明</li><li>文件摘要</li></ul></div>
+        <div class="card"><span class="k">🎉 Fun</span><h3>趣味</h3><ul><li>小知識</li><li>熱血應援</li><li>角色扮演</li><li>戲劇化說明</li></ul></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="ch5">
+    <div class="inner">
+      <p class="chnum">第五章 / <b>Chrome Skills 實戰應用</b></p>
+      <h2>把工作交出去，看它怎麼做</h2>
+      <p class="lead">從網頁到影片，Skills 能處理的內容型態相當廣泛，以下是最常被使用的七種情境。</p>
+      <div class="grid cols-3">
+        <div class="card"><h3>網頁摘要</h3><p>快速抓出長文重點，省下逐行閱讀的時間。</p></div>
+        <div class="card"><h3>PDF 整理</h3><p>將 PDF 內容轉為條列重點或表格。</p></div>
+        <div class="card"><h3>YouTube 影片整理</h3><p>擷取影片逐字稿並整理成筆記。</p></div>
+        <div class="card"><h3>Google 文件整理</h3><p>直接在文件中生成大綱或修訂建議。</p></div>
+        <div class="card"><h3>繪圖提示詞生成</h3><p>依描述產出可用於繪圖工具的提示詞。</p></div>
+        <div class="card"><h3>跨分頁資訊整合</h3><p>同時比對多個分頁，彙整成一份結論。</p></div>
+        <div class="card"><h3>AI 自動完成工作流程</h3><p>串連多個步驟，一次指令跑完整段流程。</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="ch6">
+    <div class="inner">
+      <p class="chnum">第六章 / <b>打造自己的 Skills</b></p>
+      <h2>從使用者變成創作者</h2>
+      <p class="lead">官方技能用完之後，下一步是把自己的工作習慣，做成專屬的 Skill。</p>
+      <div class="grid cols-2">
+        <div class="card"><span class="k">Step 1</span><h3>自訂 Prompt</h3><p>把重複輸入的指令寫成固定範本，減少每次重新描述的時間。</p></div>
+        <div class="card"><span class="k">Step 2</span><h3>建立個人 Skills</h3><p>將範本儲存為技能，之後一鍵呼叫即可使用。</p></div>
+        <div class="card"><span class="k">Step 3</span><h3>分享 Skills</h3><p>把做好的技能分享給同事或社群，讓經驗可以被複製。</p></div>
+        <div class="card"><span class="k">Step 4</span><h3>管理 Skills</h3><p>統一檢視、編輯、刪除已建立的技能，維持工作流程整潔。</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="ch7">
+    <div class="inner">
+      <p class="chnum">第七章 / <b>教學應用案例</b></p>
+      <h2>不同角色，不同用法</h2>
+      <p class="lead">同一套工具，在校園裡的教師、行政與學生手上，能解決完全不同的問題。</p>
+      <div class="grid cols-3">
+        <div class="persona"><div class="icon">🧑‍🏫</div><h3>教師</h3><ul><li>教案設計</li><li>學習單製作</li><li>出題</li><li>評量設計</li></ul></div>
+        <div class="persona"><div class="icon">🗂️</div><h3>行政</h3><ul><li>公文摘要</li><li>會議紀錄</li><li>Email 回覆</li><li>文件整理</li></ul></div>
+        <div class="persona"><div class="icon">🎓</div><h3>學生</h3><ul><li>預習</li><li>複習</li><li>製作筆記</li><li>考前測驗</li></ul></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="ch8">
+    <div class="inner">
+      <p class="chnum">第八章 / <b>推薦資源</b></p>
+      <h2>繼續深入的四個入口</h2>
+      <div class="reslist">
+        <a href="#" onclick="return false;"><div><div class="name">Chrome Skills 官方 Browse Skills</div><div class="desc">內建資源庫，查看與新增官方技能</div></div><span class="arrow">↗</span></a>
+        <a href="#" onclick="return false;"><div><div class="name">Google Gemini</div><div class="desc">了解 Gemini 模型與最新功能更新</div></div><span class="arrow">↗</span></a>
+        <a href="#" onclick="return false;"><div><div class="name">AI 教學資源網站</div><div class="desc">課程設計與 AI 應用案例分享</div></div><span class="arrow">↗</span></a>
+      </div>
+    </div>
+  </section>
+
+  <section id="ch9">
+    <div class="inner">
+      <p class="chnum">第九章 / <b>Q&A 與延伸學習</b></p>
+      <h2>還想知道更多？</h2>
+      <div class="qa">
+        <details class="qa-item" open>
+          <summary>常見問題<span class="plus">＋</span></summary>
+          <div class="body">初次使用時最常遇到的疑問，包含側邊欄無法開啟、Skills 選項未顯示等安裝相關問題，多半來自 Chrome 版本或 Flags 設定尚未完成。</div>
+        </details>
+        <details class="qa-item">
+          <summary>技巧分享<span class="plus">＋</span></summary>
+          <div class="body">把指令寫得具體、附上明確的輸出格式要求，能大幅提升 Skills 執行結果的可用性。</div>
+        </details>
+        <details class="qa-item">
+          <summary>最新功能追蹤<span class="plus">＋</span></summary>
+          <div class="body">Chrome Skills 仍在持續迭代，建議定期查看官方 Browse Skills 頁面掌握新增技能。</div>
+        </details>
+        <details class="qa-item">
+          <summary>實作練習<span class="plus">＋</span></summary>
+          <div class="body">建議從一項每週都會重複的工作開始，親手做出第一個屬於自己的 Skill。</div>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <section id="closing">
+    <div class="inner">
+      <p class="chnum">完成導覽</p>
+      <h2>換你打開側邊欄，<br>試試第一個 Skill。</h2>
+      <p>從 <code style="font-family:'JetBrains Mono',monospace;background:var(--surface-2);padding:2px 8px;border-radius:6px;color:#7CE3A8;">chrome://flags/#skills</code> 開始，五分鐘內就能完成安裝。</p>
+      <a class="cta" href="#hero">↑ 回到開頭</a>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <span>Chrome Skills：用 AI 指令一鍵自動化</span>
+  <span id="progress-label">01 / 11 · 認識 Chrome Skills</span>
+</footer>
+
+<script>
+  const sections = [
+    {id:'hero',  label:'首頁',        url:'<b>chrome-skills.guide</b>'},
+    {id:'ch1',   label:'第一章',      url:'<b>chrome-skills.guide</b>/認識'},
+    {id:'ch2',   label:'第二章',      url:'<b>chrome-skills.guide</b>/側邊欄'},
+    {id:'ch3',   label:'第三章',      url:'<b>chrome://flags</b>/#skills'},
+    {id:'ch4',   label:'第四章',      url:'<b>chrome-skills.guide</b>/資源庫'},
+    {id:'ch5',   label:'第五章',      url:'<b>chrome-skills.guide</b>/實戰應用'},
+    {id:'ch6',   label:'第六章',      url:'<b>chrome-skills.guide</b>/打造技能'},
+    {id:'ch7',   label:'第七章',      url:'<b>chrome-skills.guide</b>/教學案例'},
+    {id:'ch8',   label:'第八章',      url:'<b>chrome-skills.guide</b>/推薦資源'},
+    {id:'ch9',   label:'第九章',      url:'<b>chrome-skills.guide</b>/QA'},
+    {id:'closing', label:'結語',      url:'<b>chrome-skills.guide</b>/開始使用'},
+  ];
+
+  const tabstrip = document.getElementById('tabstrip');
+  const rail = document.getElementById('rail');
+  const urlbar = document.getElementById('urlbar');
+  const progressLabel = document.getElementById('progress-label');
+
+  sections.forEach((s, i) => {
+    const tab = document.createElement('button');
+    tab.textContent = s.label;
+    tab.dataset.id = s.id;
+    tab.addEventListener('click', () => document.getElementById(s.id).scrollIntoView({behavior:'smooth'}));
+    tabstrip.appendChild(tab);
+
+    const row = document.createElement('div');
+    row.className = 'dot-row';
+    row.dataset.id = s.id;
+    row.innerHTML = `<span class="label">${s.label}</span><span class="dot"></span>`;
+    row.addEventListener('click', () => document.getElementById(s.id).scrollIntoView({behavior:'smooth'}));
+    rail.appendChild(row);
+  });
+
+  function setActive(id){
+    document.querySelectorAll('.tabstrip button').forEach(b => b.classList.toggle('active', b.dataset.id === id));
+    document.querySelectorAll('#rail .dot-row').forEach(r => r.classList.toggle('active', r.dataset.id === id));
+    const s = sections.find(x => x.id === id);
+    if(s){
+      urlbar.innerHTML = s.url;
+      const idx = sections.indexOf(s) + 1;
+      progressLabel.textContent = String(idx).padStart(2,'0') + ' / ' + sections.length + ' · ' + (document.querySelector('#'+id+' h1, #'+id+' h2')?.textContent.split('\n')[0] || s.label);
+    }
+  }
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if(entry.isIntersecting) setActive(entry.target.id);
+    });
+  }, {rootMargin:'-45% 0px -45% 0px', threshold:0});
+
+  sections.forEach(s => {
+    const el = document.getElementById(s.id);
+    if(el) observer.observe(el);
+  });
+
+  setActive('hero');
+
+  window.addEventListener('scroll', () => {
+    const h = document.documentElement;
+    const scrolled = (h.scrollTop) / (h.scrollHeight - h.clientHeight) * 100;
+    document.getElementById('loadbar').style.width = scrolled + '%';
+  }, {passive:true});
+</script>
+
+</body>
+</html>

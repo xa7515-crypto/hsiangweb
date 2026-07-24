@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>☕ Section 3 – 生活補給基地</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #050816;
+      font-family: 'Noto Serif TC', serif;
+    }
+
+    /* ── Top Nav ── */
+    .top-nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 999;
+      display: flex;
+      align-items: center;
+      padding: 14px 8%;
+      background: rgba(5, 8, 22, 0.72);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+    .home-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 22px;
+      border-radius: 999px;
+      background: linear-gradient(to right, #22d3ee22, #9333ea22);
+      border: 1px solid rgba(103, 232, 249, 0.35);
+      color: #67e8f9;
+      font-family: 'Space Mono', monospace;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-decoration: none;
+      transition: background 0.3s, box-shadow 0.3s, transform 0.2s;
+    }
+    .home-btn:hover {
+      background: linear-gradient(to right, #22d3ee44, #9333ea44);
+      box-shadow: 0 0 20px rgba(34, 211, 238, 0.3);
+      transform: translateY(-1px);
+    }
+    .home-btn svg {
+      width: 15px; height: 15px;
+      fill: currentColor;
+    }
+
+    /* ── Stars ── */
+    .life-stars {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 0;
+    }
+    .life-stars::before,
+    .life-stars::after {
+      content: '';
+      position: absolute;
+      width: 2px; height: 2px;
+      border-radius: 50%;
+      background: white;
+      box-shadow:
+        120px 80px #fff, 340px 200px #fff9, 580px 60px #fffc,
+        760px 320px #fff, 920px 140px #fff8, 1100px 260px #fff,
+        180px 420px #fff9, 460px 500px #fff, 700px 440px #fffc,
+        860px 560px #fff, 1200px 400px #fff9, 80px 620px #fff,
+        300px 700px #fffc, 640px 680px #fff, 1000px 640px #fff8,
+        1300px 180px #fff, 400px 320px #fff9, 1050px 500px #fff,
+        220px 550px #fffc, 780px 200px #fff, 1180px 680px #fff9;
+      animation: twinkle 5s ease-in-out infinite alternate;
+    }
+    .life-stars::after {
+      width: 1px; height: 1px;
+      box-shadow:
+        50px 150px #fff8, 270px 90px #fff, 490px 400px #fff9,
+        830px 70px #fff, 1060px 350px #fffc, 140px 760px #fff,
+        500px 820px #fff9, 900px 780px #fff, 1250px 520px #fffc,
+        350px 640px #fff8, 720px 310px #fff, 1150px 100px #fff9;
+      animation-delay: 2s;
+    }
+    @keyframes twinkle {
+      0% { opacity: 0.3; }
+      100% { opacity: 1; }
+    }
+
+    /* ── Section Wrapper ── */
+    .life-base-section {
+      position: relative;
+      padding: 170px 8% 120px;
+      background:
+        radial-gradient(circle at top left, #22d3ee22, transparent),
+        radial-gradient(circle at bottom right, #9333ea22, transparent),
+        #050816;
+      overflow: hidden;
+      color: white;
+    }
+
+    /* ── Header ── */
+    .life-header {
+      text-align: center;
+      margin-bottom: 80px;
+      position: relative;
+      z-index: 1;
+      animation: fadeUp 0.9s ease both;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(32px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .life-tag {
+      display: inline-block;
+      padding: 10px 22px;
+      border-radius: 999px;
+      background: #22d3ee22;
+      border: 1px solid #67e8f955;
+      color: #67e8f9;
+      font-family: 'Space Mono', monospace;
+      font-size: 14px;
+      letter-spacing: 0.1em;
+      margin-bottom: 24px;
+    }
+
+    .life-header h2 {
+      font-size: clamp(36px, 6vw, 64px);
+      line-height: 1.35;
+      font-weight: 900;
+    }
+    .life-header h2 span {
+      background: linear-gradient(to right, #67e8f9, #f9a8d4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .life-header p {
+      margin-top: 20px;
+      color: #cbd5e1;
+      font-size: 20px;
+    }
+
+    /* ── Sticky Wall ── */
+    .sticky-wall {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 30px;
+      margin-bottom: 100px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .sticky-note {
+      padding: 30px;
+      border-radius: 28px;
+      color: #111827;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.35);
+      transform: rotate(-2deg);
+      transition: transform 0.4s cubic-bezier(.22,1,.36,1), box-shadow 0.4s;
+      animation: fadeUp 0.8s ease both;
+    }
+    .sticky-note:nth-child(2) { animation-delay: .1s; transform: rotate(1.5deg); }
+    .sticky-note:nth-child(3) { animation-delay: .2s; }
+    .sticky-note:nth-child(4) { animation-delay: .3s; transform: rotate(1deg); }
+
+    .sticky-note:hover {
+      transform: rotate(0deg) translateY(-12px) scale(1.02);
+      box-shadow: 0 32px 60px rgba(0,0,0,0.45);
+    }
+
+    .sticky-note .emoji { font-size: 42px; margin-bottom: 18px; }
+    .sticky-note h3 { font-size: 24px; margin-bottom: 12px; font-weight: 800; }
+    .sticky-note p  { line-height: 1.8; font-size: 16px; }
+
+    .yellow { background: #fef08a; }
+    .pink   { background: #f9a8d4; }
+    .orange { background: #fdba74; }
+    .blue   { background: #93c5fd; }
+
+    /* ── Toolkit ── */
+    .toolkit-section {
+      margin-bottom: 120px;
+      position: relative;
+      z-index: 1;
+    }
+    .toolkit-title {
+      font-size: clamp(28px, 4vw, 42px);
+      font-weight: 800;
+      margin-bottom: 40px;
+      text-align: center;
+    }
+    .toolkit-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 28px;
+    }
+    .tool-card {
+      padding: 32px;
+      border-radius: 30px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      backdrop-filter: blur(20px);
+      transition: transform 0.4s cubic-bezier(.22,1,.36,1), box-shadow 0.4s;
+    }
+    .tool-card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 0 40px rgba(34,211,238,0.22);
+    }
+    .tool-icon { font-size: 50px; margin-bottom: 18px; }
+    .tool-card h4 { font-size: 24px; margin-bottom: 12px; font-weight: 800; }
+    .tool-card p  { color: #cbd5e1; line-height: 1.8; }
+
+    /* ── Focus Mode ── */
+    .focus-mode {
+      border-radius: 40px;
+      padding: 60px;
+      background: linear-gradient(135deg, rgba(34,211,238,0.15), rgba(147,51,234,0.15));
+      border: 1px solid rgba(255,255,255,0.1);
+      backdrop-filter: blur(30px);
+      position: relative;
+      z-index: 1;
+    }
+    .focus-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: center;
+      gap: 50px;
+    }
+    @media (max-width: 768px) {
+      .focus-content { grid-template-columns: 1fr; }
+      .focus-right { justify-content: center; margin-top: 20px; }
+      .life-header h2 { font-size: 36px; }
+    }
+
+    .focus-badge {
+      display: inline-block;
+      padding: 10px 18px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.1);
+      font-family: 'Space Mono', monospace;
+      font-size: 13px;
+      margin-bottom: 20px;
+    }
+    .focus-left h3 {
+      font-size: clamp(32px, 4vw, 52px);
+      margin-bottom: 24px;
+      font-weight: 900;
+    }
+    .focus-left p {
+      color: #cbd5e1;
+      font-size: 18px;
+      line-height: 1.9;
+      margin-bottom: 30px;
+    }
+
+    .music-buttons { display: flex; flex-wrap: wrap; gap: 16px; }
+    .music-buttons button {
+      padding: 15px 26px;
+      border: none;
+      border-radius: 18px;
+      background: linear-gradient(to right, #22d3ee, #9333ea);
+      color: white;
+      font-weight: 700;
+      font-size: 15px;
+      cursor: pointer;
+      font-family: 'Noto Serif TC', serif;
+      transition: opacity 0.2s, transform 0.2s;
+    }
+    .music-buttons button:hover { opacity: 0.88; transform: translateY(-2px); }
+    .music-buttons button.active {
+      box-shadow: 0 0 18px #22d3ee88;
+      transform: translateY(-2px);
+    }
+
+    .focus-right { display: flex; justify-content: center; }
+
+    /* ── Planet ── */
+    .planet {
+      width: clamp(220px, 25vw, 320px);
+      height: clamp(220px, 25vw, 320px);
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, #67e8f9, #1e3a8a);
+      box-shadow: 0 0 60px #22d3ee88, 0 0 120px #9333ea55;
+      position: relative;
+      animation: float 6s ease-in-out infinite;
+    }
+    .planet::after {
+      content: '';
+      position: absolute;
+      inset: -25px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.18);
+    }
+    .planet::before {
+      content: '';
+      position: absolute;
+      inset: -50px;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.07);
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50%       { transform: translateY(-18px); }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="index.html" class="home-btn">
+    <svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+      <path d="M10.707 2.293a1 1 0 0 0-1.414 0l-7 7A1 1 0 0 0 3 11h1v6a1 1 0 0 0 1 1h4v-4h2v4h4a1 1 0 0 0 1-1v-6h1a1 1 0 0 0 .707-1.707l-7-7z"/>
+    </svg>
+    回首頁
+  </a>
+</nav>
+
+<section class="life-base-section">
+
+  <!-- 星空背景 -->
+  <div class="life-stars"></div>
+
+  <!-- 區塊標題 -->
+  <div class="life-header">
+    <span class="life-tag">☕ LIFE RECHARGE BASE</span>
+    <h2>
+      在 π 的無限循環裡，<br>
+      <span>也別忘了好好生活。</span>
+    </h2>
+    <p>教學之外，也留一點時間給自己發光走。✨</p>
+  </div>
+
+  <!-- 靈感便利貼牆 -->
+  <div class="sticky-wall">
+
+    <div class="sticky-note yellow">
+      <div class="emoji">📚</div>
+      <h3>最近閱讀</h3>
+      <p>《原子習慣》<br>每天進步 1%，會帶來巨大改變。</p>
+    </div>
+
+    <div class="sticky-note pink">
+      <div class="emoji">✨</div>
+      <h3>教學靈感</h3>
+      <p>用 AI 幫學生生成「專屬數學角色卡」，讓學習更有代入感。</p>
+    </div>
+
+    <div class="sticky-note orange">
+      <div class="emoji">☕</div>
+      <h3>咖啡日記</h3>
+      <p>今日配方：熱拿鐵 + Lo-fi 音樂 + 備課模式 ON。</p>
+    </div>
+
+    <div class="sticky-note blue">
+      <div class="emoji">🎬</div>
+      <h3>電影推薦</h3>
+      <p>《星際效應》<br>原來數學與宇宙，真的如此浪漫。</p>
+    </div>
+
+  </div>
+
+  <!-- 教師生存工具包 -->
+  <div class="toolkit-section">
+    <div class="toolkit-title">🧰 教師生存工具包</div>
+    <div class="toolkit-grid">
+
+      <div class="tool-card">
+        <div class="tool-icon">📝</div>
+        <h4>Notion 模板</h4>
+        <p>備課管理、教學資料庫、學生追蹤</p>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-icon">📂</div>
+        <h4>Google 工具</h4>
+        <p>雲端協作、表單測驗、課堂分享</p>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-icon">📅</div>
+        <h4>運動規劃</h4>
+
+      <p>運動安排、時間分配、爬山樂趣多</p>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-icon">🤖</div>
+        <h4>AI 備課流程</h4>
+        <p>快速生成教材與活動靈感</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 專注陪伴模式 -->
+  <div class="focus-mode">
+    <div class="focus-content">
+
+
+      <div class="focus-left">
+        <span class="focus-badge">🎵 Focus Mode</span>
+        <h3>專注陪伴模式 </h3>
+        <p>
+          打開 Lo-fi 音樂、白噪音與星空背景，<br>
+          讓備課與學習變成一場療癒旅程。 
+        </p>
+        <div class="music-buttons">
+          <button id="btn-lofi">🎧 Lo-fi 音樂</button>
+          <button id="btn-rain">🌧 白噪音</button>
+          <button id="btn-star">🌌 星空模式</button> 
+         <a href="百岳網頁/index.html" target="_blank"> <button id="btn-star2">🌌百岳爬山樂趣多請按我，我帶你去百岳導覽
+
+</button>
+        </div>
+      </div>
+      <div class="focus-right">
+        <div class="planet"></div>
+      </div>
+
+    </div>
+  </div>
+
+</section>
+
+<script>
+  // Simple toggle active state on buttons
+  document.querySelectorAll('.music-buttons button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      btn.classList.toggle('active');
+    });
+  });
+</script>
+
+</body>
+</html>
